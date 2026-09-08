@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚽ SOCCER · Team‑Sheet</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0d11;
+      color: #c8d6e5;
+      font-family: 'Consolas', monospace;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1100px;
+      width: 100%;
+    }
+    h1 {
+      color: #6cf;
+      font-size: 2rem;
+      text-shadow: 0 0 20px #3a6f9f88;
+      margin-bottom: 6px;
+    }
+    .sub {
+      color: #7a9bb5;
+      margin-bottom: 30px;
+      border-left: 3px solid #6cf;
+      padding-left: 15px;
+    }
+    .panel {
+      background: #11161e;
+      border: 1px solid #2a3f4f;
+      border-radius: 12px;
+      padding: 22px 28px;
+      margin-bottom: 24px;
+    }
+    .panel h2 {
+      color: #9ac7e0;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: #0c131c;
+      border-radius: 8px;
+      padding: 16px;
+      border-left: 4px solid #3a6f9f;
+    }
+    .card .label {
+      font-size: 0.7rem;
+      color: #6a8fa0;
+      text-transform: uppercase;
+    }
+    .card .value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+    .btn {
+      background: #1c2a36;
+      border: 1px solid #3a5a6a;
+      color: #e0f0fa;
+      padding: 8px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      margin: 4px 8px 4px 0;
+    }
+    .btn:hover {
+      background: #2a4050;
+      border-color: #6cf;
+      box-shadow: 0 0 15px #2a6f9f55;
+    }
+    .btn-gold {
+      background: #b8860b;
+      border-color: #ffb347;
+      color: #fff;
+    }
+    .btn-gold:hover {
+      background: #d4a017;
+      box-shadow: 0 0 20px #ffb34788;
+    }
+    .log-box {
+      background: #0a1018;
+      border-radius: 6px;
+      padding: 10px 14px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      color: #9ab0c0;
+      border: 1px solid #1a2a36;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    .log-entry {
+      border-bottom: 1px solid #1a222a;
+      padding: 3px 0;
+    }
+    .log-info { color: #6cf; }
+    .log-success { color: #6fdb6f; }
+    .log-warning { color: #f0c060; }
+    .log-error { color: #e06050; }
+    @media (max-width: 700px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>⚽ SOCCER · Team‑Sheet</h1>
+  <div class="sub">Soccer‑Ableitungen · Rollen · FP‑Codes · Mismatch</div>
+
+  <div class="panel">
+    <h2>👥 Team‑Dashboard</h2>
+    <div class="grid-2" id="soccerGrid">
+      <div class="card"><div class="label">Leader</div><div class="value" id="leader">—</div></div>
+      <div class="card"><div class="label">Follower</div><div class="value" id="follower">—</div></div>
+      <div class="card"><div class="label">FP‑Codes</div><div class="value" id="fpCodes">—</div></div>
+      <div class="card"><div class="label">Mismatch</div><div class="value" id="mismatch">—</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🔄 Steuerung</h2>
+    <button class="btn" id="btnRefresh">🔄 Team aktualisieren</button>
+    <button class="btn btn-gold" id="btnReport">📡 Report senden</button>
+  </div>
+
+  <div class="panel">
+    <h2>📝 Log</h2>
+    <div class="log-box" id="logBox"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { report, autoReport, getGlobalStatus, onUpdate } from './respo-master.js';
+
+  const state = {
+    leader: '—',
+    follower: '—',
+    fpCodes: '—',
+    mismatch: false,
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function log(msg, type = 'info') {
+    const box = $('logBox');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    const time = new Date().toLocaleTimeString();
+    const icon = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '❌' }[type] || '📌';
+    entry.innerHTML = `<span class="log-${type}">[${time}] ${icon} ${msg}</span>`;
+    box.appendChild(entry);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function updateSoccer() {
+    const leaders = ['👑 Alpha', '🦁 Bravo', '🐺 Charlie'];
+    const followers = ['🛡️ Delta', '🛡️ Echo', '🛡️ Foxtrot'];
+    state.leader = leaders[Math.floor(Math.random() * leaders.length)];
+    state.follower = followers[Math.floor(Math.random() * followers.length)];
+    state.fpCodes = `FP-${Math.floor(1000 + Math.random() * 9000)}`;
+    state.mismatch = Math.random() < 0.15;
+    updateUI();
+    log(`⚽ Team aktualisiert: Leader ${state.leader}, FP ${state.fpCodes}`, 'info');
+    if (state.mismatch) log('⚠️ MISMATCH erkannt!', 'error');
+  }
+
+  function updateUI() {
+    $('leader').textContent = state.leader;
+    $('follower').textContent = state.follower;
+    $('fpCodes').textContent = state.fpCodes;
+    $('mismatch').textContent = state.mismatch ? '⚠️ JA' : '✅ NEIN';
+    $('mismatch').style.color = state.mismatch ? '#e06050' : '#6fdb6f';
+  }
+
+  function getSoccerPayload() {
+    return {
+      leader: state.leader,
+      follower: state.follower,
+      fpCodes: state.fpCodes,
+      mismatch: state.mismatch,
+      timestamp: Date.now(),
+    };
+  }
+
+  autoReport('SOCCER', getSoccerPayload, 5000);
+
+  $('btnRefresh').addEventListener('click', updateSoccer);
+  $('btnReport').addEventListener('click', () => {
+    report('SOCCER', getSoccerPayload());
+    log('📡 Report gesendet', 'success');
+  });
+
+  onUpdate((data) => {
+    if (data.name === 'FOUNDER') {
+      log(`👑 Founder-Status: ${data.payload.running ? 'läuft' : 'gestoppt'}`, 'info');
+    } else if (data.name === 'NC_MOVE') {
+      log(`🌀 MOVE-Energie: ${data.payload.totalEnergy || '?'}`, 'info');
+    }
+  });
+
+  updateSoccer();
+  log('⚽ SOCCER-Modul gestartet', 'success');
+</script>
+</body>
+</html>
