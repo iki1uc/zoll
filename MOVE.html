@@ -2,52 +2,71 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>MOVE · ENGINE</title>
+<title>NC · MOVE · PICASSO</title>
 
 <style>
 body { background:#000; color:#0f0; font-family:Consolas; padding:40px; }
 pre { background:#111; padding:20px; border-left:3px solid #6cf; }
+h1 { color:#6cf; }
 </style>
 </head>
 
 <body>
 
-<h1>MOVE · ENGINE</h1>
-<pre id="out">Berechne 9×9…</pre>
+<h1>NC · MOVE · PICASSO</h1>
+<pre id="out">Lade NC‑MOVE…</pre>
 
 <script>
-// UFO = 9^9 (Konstante)
+// ============================================================
+// 1. UFO-KERN (9^9)
+// ============================================================
 const UFO = Math.pow(9, 9);
 
-// 6-BLOCK Energie
-const HOME = 90;
-const TRANS = 90;
-const WARB = 90;
-const KANAL = 90;
-const CONT = 180;
+// ============================================================
+// 2. ENERGIE-BLOCK (Picasso-Algorithmus)
+// ============================================================
+const BLOCKS = {
+    HOME: 90,
+    TRANS: 90,
+    WARB: 90,
+    KANAL: 90,
+    CONT: 180
+};
 
 // Gesamtenergie
-const TOTAL = HOME + TRANS + WARB + KANAL + CONT;
+const TOTAL = Object.values(BLOCKS).reduce((a,b)=>a+b,0);
 
-// Energie pro Ziel
+// Energie pro Achse (8 Achsen)
 const PER_AXIS = TOTAL / 8;
 
-// RUN8 Achsen
+// ============================================================
+// 3. RUN8 Achsen
+// ============================================================
 const RUN8 = ["N","S","E","W","UP","DOWN","IN","OUT"];
 
-// MOVE Transformation
-const MOVE = RUN8.map(axis => ({
-    ufo: UFO,
-    axis: axis,
-    energy: PER_AXIS,
-    vector: `VECTOR(${axis})`,
-    tunnel: `WURMLOCH(${axis})`,
-    continium: `RUN(${axis})`
-}));
+// ============================================================
+// 4. Picasso-Vektor-Algorithmus
+// ============================================================
+// Jede Achse bekommt:
+// - Energiefraktal
+// - Picasso-Vektor
+// - NC-MOVE Tunnel
+// - Kontinuum-String
+// - Fraktale Farbe (ASCII)
+// ============================================================
 
-document.getElementById("out").textContent =
-    JSON.stringify({ UFO, TOTAL, PER_AXIS, MOVE }, null, 2);
-</script>
+function picassoColor(axis) {
+    const map = {
+        N: "#0f0",
+        S: "#6cf",
+        E: "#f0f",
+        W: "#ff0",
+        UP: "#0ff",
+        DOWN: "#f60",
+        IN: "#f00",
+        OUT: "#fff"
+    };
+    return map[axis] || "#0f0";
+}
 
-</body>
-</html>
+function fractalEnergy(base) {
