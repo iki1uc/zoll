@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 BRAIN · ORIGINAL · STAND-DER-DINGE (echt)</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#05070e; color:#c0d0d0; font-family:'Segoe UI','Consolas',monospace; min-height:100vh; display:flex; flex-direction:column; }
+  #master { display:flex; flex:1; height:100vh; overflow:hidden; }
+
+  #nav { width:220px; min-width:190px; background:rgba(6,8,16,0.92); backdrop-filter:blur(12px);
+    border-right:1px solid rgba(120,220,150,0.08); padding:14px 12px; overflow-y:auto; }
+  #nav .brand { font-size:15px; font-weight:300; letter-spacing:2px;
+    background:linear-gradient(135deg,#7ee0a0,#d8f0c0,#b388ff); -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent; padding-bottom:8px; border-bottom:1px solid rgba(120,220,150,0.06); margin-bottom:8px; }
+  .nav-item { display:flex; align-items:center; gap:6px; padding:5px 7px; border-radius:6px; font-size:10.5px;
+    color:#8aa8a0; cursor:pointer; border-left:2px solid transparent; }
+  .nav-item:hover { background:rgba(120,220,150,0.05); color:#d0e8e0; border-left-color:#7ee0a0; }
+  .nav-item.active { border-left-color:#f0d080; color:#f0d080; }
+
+  #stage { flex:1; position:relative; overflow:hidden; }
+  #stage3d { width:100%; height:100%; perspective:1400px; }
+  #orbitInner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transform:rotateX(-16deg) rotateY(20deg); }
+  #meshLayer { position:absolute; left:50%; top:50%; transform-style:preserve-3d; }
+  .mesh-point { position:absolute; width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border-radius:50%; transition:opacity 0.3s; }
+  .axis { position:absolute; left:50%; top:50%; transition:opacity 0.3s; }
+  .axis-x { width:280px; height:1px; background:rgba(255,90,90,0.35); transform:translate(-140px,0,0); }
+  .axis-y { width:1px; height:220px; background:rgba(90,220,120,0.35); transform:translate(0,-220px,0); }
+  .axis-z { width:1px; height:280px; background:rgba(90,150,255,0.35); transform:translate(0,0,-140px) rotateX(90deg); transform-origin:0 0; }
+
+  .screen { position:absolute; left:50%; top:50%; width:160px; height:230px; margin:-115px 0 0 -80px;
+    border:2px solid rgba(0,0,0,0.6); transition:transform 0.6s cubic-bezier(.2,.9,.25,1.05); }
+  #s0 { background:linear-gradient(135deg,#12c2e9,#0057ff); }
+  #s1 { background:linear-gradient(135deg,#ff2fa0,#b8006b); }
+  #s2 { background:rgba(255,255,255,0.14); backdrop-filter:blur(3px); }
+
+  #masterRespo {
+    position:absolute; top:12px; left:16px; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px);
+    border-radius:12px; padding:8px 14px; font-size:10px; color:#8aa8a0;
+    border:1px solid rgba(179,136,255,0.18); line-height:1.7; min-width:200px;
+  }
+  #masterRespo .title { color:#b388ff; font-weight:600; letter-spacing:1px; font-size:11px; margin-bottom:2px; }
+  #masterRespo .val { color:#a0e0b0; font-weight:bold; }
+  #masterRespo .gold { color:#f0d080; }
+  #masterRespo .off { color:#ff6b6b; }
+
+  #cmdBar { position:absolute; bottom:12px; left:16px; right:16px; background:rgba(0,0,0,0.55);
+    backdrop-filter:blur(6px); border-radius:12px; padding:8px 14px; font-size:10.5px; color:#5a7a6a;
+    border:1px solid rgba(120,220,150,0.05); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  #cmdBar input { flex:1; min-width:120px; background:rgba(20,28,20,0.6); border:1px solid rgba(120,220,150,0.12);
+    border-radius:8px; padding:5px 12px; color:#d0e8e0; font-family:inherit; font-size:10.5px; }
+  #cmdBar button { background:rgba(20,28,20,0.6); border:1px solid rgba(120,220,150,0.15); border-radius:8px;
+    padding:5px 14px; color:#c0d8c8; font-family:inherit; font-size:10.5px; cursor:pointer; }
+  #cmdBar button:hover { border-color:#7ee0a0; color:#fff; }
+  #cmdOut { color:#8cf0d0; }
+
+  #pluginPanel { width:250px; min-width:220px; background:rgba(6,8,16,0.92); backdrop-filter:blur(12px);
+    border-left:1px solid rgba(120,220,150,0.08); padding:12px 12px; overflow-y:auto; }
+  #pluginPanel .head { font-size:11px; font-weight:600; color:#f0d080; border-bottom:1px solid rgba(255,215,0,0.08);
+    padding-bottom:6px; margin-bottom:8px; }
+  #pluginPanel .subhead { font-size:9px; color:#5a7a6a; text-transform:uppercase; letter-spacing:1px; margin:8px 0 4px; }
+  .plugin-item { display:flex; align-items:center; gap:6px; padding:5px 6px; border-radius:6px; margin-bottom:3px;
+    background:rgba(0,0,0,0.2); border-left:2px solid rgba(120,220,150,0.06); font-size:10px; }
+  .plugin-item .status { width:7px; height:7px; border-radius:50%; flex-shrink:0; background:#2a3a3a; }
+  .plugin-item .status.on { background:#8cf0d0; box-shadow:0 0 8px #8cf0d0; }
+  .plugin-item .name { color:#b0c8c0; flex:1; }
+  .plugin-item .effect { color:#5a7a6a; font-size:8.5px; display:block; }
+  .plugin-item .toggle { font-size:9px; background:rgba(20,28,20,0.4); border:1px solid rgba(120,220,150,0.12);
+    border-radius:8px; padding:2px 8px; color:#8aa8a0; cursor:pointer; }
+  .fixed-item { display:flex; align-items:center; gap:6px; padding:3px 6px; font-size:9.5px; color:#5a6a6a; }
+  .fixed-item .dot { width:5px; height:5px; border-radius:50%; background:#4a6a5a; }
+
+  .note-small { font-size:9px; color:#5a7a6a; line-height:1.5; margin-top:10px; padding-top:8px;
+    border-top:1px solid rgba(120,220,150,0.05); }
+</style>
+</head>
+<body>
+
+<div id="master">
+  <div id="nav">
+    <div class="brand">🧠 BRAIN</div>
+    <div class="nav-item active" data-target="root">🏠 ROOT</div>
+    <div class="nav-item" data-target="boerse">📈 BOERSE</div>
+    <div class="nav-item" data-target="dom">🏛 DOM</div>
+    <div class="nav-item" data-target="eos">🌌 EOS</div>
+    <div class="nav-item" data-target="evo">🔮 EVO</div>
+    <div class="nav-item" data-target="markt">🏪 MARKT</div>
+    <div class="nav-item" data-target="respo">🌀 RESPO</div>
+    <div class="nav-item" data-target="tool48">🛠 TOOL48</div>
+  </div>
+
+  <div id="stage">
+    <div id="stage3d"><div id="orbitInner">
+      <div class="axis axis-x" id="axisX"></div>
+      <div class="axis axis-y" id="axisY"></div>
+      <div class="axis axis-z" id="axisZ"></div>
+      <div class="screen" id="s0"></div>
+      <div class="screen" id="s1"></div>
+      <div class="screen" id="s2"></div>
+      <div id="meshLayer"></div>
+    </div></div>
+
+    <div id="masterRespo">
+      <div class="title">⚡ STAND DER DINGE (echt)</div>
+      <div>🧩 Module (axiom.map): <span class="val" id="mrModules">–</span></div>
+      <div>🌀 Respo (dieses Modul): <span class="val" id="mrRespo">–</span></div>
+      <div>🌐 Respo (alle gemeldeten): <span class="gold" id="mrGlobal">–</span></div>
+      <div>⏱ Zeit (NC_time): <span class="val" id="mrTime">–</span></div>
+      <div>🔷 Kraft (NC_kraft): <span class="val" id="mrKraft">–</span></div>
+      <div>📐 Raum (NC_space): <span class="val" id="mrSpace">–</span></div>
+    </div>
+
+    <div id="cmdBar">
+      <span>⚙️ HDF-RESOLVE (resolver.js):</span>
+      <input id="cmdInput" placeholder="#SLIDE / #HDFRESPO / #ID" value="#SLIDE">
+      <button id="cmdBtn">RESOLVE</button>
+      <span id="cmdOut"></span>
+    </div>
+  </div>
+
+  <div id="pluginPanel">
+    <div class="head">🧩 ECHTE PLUGINS <span id="pluginCount" style="color:#8aa8a0;font-weight:400;"></span></div>
+    <div id="pluginList"></div>
+    <div class="subhead">Fundament (nicht abschaltbar)</div>
+    <div id="fixedList"></div>
+    <div class="note-small">
+      Jeder Toggle links ruft eine echte Funktion aus der jeweiligen Datei auf oder lässt sie bewusst weg —
+      kein Deko-Multiplikator. Ausprobieren: NC_kraft aus → Mesh springt hart statt weich zu gleiten.
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ================================================================
+//  BRAIN index.html v2 — echte Plugin-Toggles, echter Master-Respo
+// ================================================================
+import { Vec3 } from './vec.js';
+import { axisLabel } from './NC_space.js';
+import { Clock } from './NC_time.js';
+import { springForce, clamp } from './NC_kraft.js';
+import { SCREEN_BASE_ANGLES } from './NC_figur.js';
+import { rowColToAxis } from './coord.js';
+import { MODULES } from './axiom.map.js';
+import { kernel } from './OS_CORE.js';
+import { resolve, seedDefaults } from './resolver.js';
+import { screenTransform } from './dreieck.js';
+import { initRouter } from './router.js';
+import { autoReport, getGlobalStatus, onUpdate } from '../respo-master.js';
+
+seedDefaults();
+
+// ─── PLUGIN-ZUSTAND: jeder Toggle hat eine ECHTE Wirkung ───────
+const plugins = {
+  'NC_time.js':  { active: true,  effect: 'Pausiert/läuft die echte Clock (kernel.clock)' },
+  'NC_kraft.js': { active: true,  effect: 'Weiches Federn (springForce) statt hartem Sprung' },
+  'NC_space.js': { active: true,  effect: 'Zeigt/versteckt die X/Y/Z-Achsenlinien' },
+  'dreieck.js':  { active: true,  effect: '120°-Dreieck (screenTransform) statt Flach-Fallback' },
+  'respo.js':    { active: true,  effect: 'Zeigt/versteckt das 9×9-Mesh, zählt in den Score' },
+};
+
+function renderPlugins() {
+  const list = document.getElementById('pluginList');
+  list.innerHTML = '';
+  let activeCount = 0;
+  Object.entries(plugins).forEach(([name, p]) => {
+    if (p.active) activeCount++;
+    const div = document.createElement('div');
+    div.className = 'plugin-item';
+    div.innerHTML = `<span class="status ${p.active ? 'on' : ''}"></span>
+      <span class="name">${name}<span class="effect">${p.effect}</span></span>
+      <span class="toggle">${p.active ? 'AUS' : 'AN'}</span>`;
+    div.querySelector('.toggle').addEventListener('click', () => {
+      p.active = !p.active;
+      renderPlugins();
+      applyPluginEffects();
+    });
+    list.appendChild(div);
+  });
+  document.getElementById('pluginCount').textContent = `${activeCount}/${Object.keys(plugins).length}`;
+  document.getElementById('mrModules').textContent = Object.keys(MODULES).length;
+}
+
+const fixedFiles = ['vec.js', 'OS_CORE.js', 'axiom.map.js', 'coord.js', 'resolver.js', 'router.js', 'index.html'];
+function renderFixed() {
+  const list = document.getElementById('fixedList');
+  list.innerHTML = '';
+  fixedFiles.forEach(name => {
+    const div = document.createElement('div');
+    div.className = 'fixed-item';
+    div.innerHTML = `<span class="dot"></span> ${name}`;
+    list.appendChild(div);
+  });
+}
+renderFixed();
+
+// ─── SCREENS (dreieck.js) mit Flach-Fallback wenn deaktiviert ──
+const screenEls = { 0: document.getElementById('s0'), 1: document.getElementById('s1'), 2: document.getElementById('s2') };
+function applyScreens() {
+  Object.keys(screenEls).forEach(i => {
+    if (plugins['dreieck.js'].active) {
+      screenEls[i].style.transform = screenTransform({ baseAngle: SCREEN_BASE_ANGLES[i], radius: 150 });
+    } else {
+      screenEls[i].style.transform = `translateX(${(i - 1) * 190}px) translateZ(0px)`;
+    }
+  });
+}
+
+// ─── ACHSEN (NC_space.js) ───────────────────────────────────────
+function applyAxes() {
+  const vis = plugins['NC_space.js'].active ? '1' : '0';
+  ['axisX','axisY','axisZ'].forEach(id => document.getElementById(id).style.opacity = vis);
+}
+
+// ─── RESPO-MESH ──────────────────────────────────────────────────
+const meshLayer = document.getElementById('meshLayer');
+let mesh = [];
+function meshInit() {
+  meshLayer.innerHTML = '';
+  mesh = [];
+  for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+    const idx = r * 9 + c;
+    const v = Math.sin(idx * 0.2 + 0.5);
+    const axis = rowColToAxis(r, c);
+    const el = document.createElement('div');
+    el.className = 'mesh-point';
+    meshLayer.appendChild(el);
+    mesh.push({ value: v, targetValue: v, truth: 0, x: axis.x, z: axis.z, el });
+  }
+}
+meshInit();
+
+function stepMeshReal() {
+  let sum = 0;
+  for (const s of mesh) {
+    if (plugins['NC_kraft.js'].active) {
+      s.value += springForce(s.value, s.targetValue, 0.06);
+    } else {
+      s.value = s.targetValue;
+    }
+    const deviation = Math.abs(s.value - s.truth);
+    s.score = clamp(1 - Math.min(deviation, 1), 0, 1);
+    sum += s.score;
+  }
+  return sum / mesh.length;
+}
+
+function applyMeshVisibility() {
+  meshLayer.style.display = plugins['respo.js'].active ? '' : 'none';
+}
+
+function applyPluginEffects() {
+  applyScreens();
+  applyAxes();
+  applyMeshVisibility();
+}
+
+// ─── HDF-RESOLVER (resolver.js) ─────────────────────────────────
+document.getElementById('cmdBtn').addEventListener('click', () => {
+  const cmd = document.getElementById('cmdInput').value.trim();
+  const result = resolve(cmd);
+  document.getElementById('cmdOut').textContent = result ? `✅ ROM ${result.rom} → ${result.value}` : `❌ ${cmd} nicht gefunden`;
+});
+
+// ─── ROUTER (router.js) + axiom.map.js ─────────────────────────
+initRouter((target) => {
+  const mod = MODULES[target] || MODULES.root;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.target === target));
+});
+document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+  item.addEventListener('click', () => { location.hash = item.dataset.target; });
+});
+
+// ─── MASTER-RESPO / STAND DER DINGE (respo-master.js, echt) ────
+function refreshGlobal() {
+  const status = getGlobalStatus();
+  document.getElementById('mrGlobal').textContent = status.avg === null
+    ? 'noch keine Meldung' : `${Math.round(status.avg * 100)}% (${Object.keys(status.modules).join(', ')})`;
+}
+onUpdate(refreshGlobal);
+refreshGlobal();
+
+// ─── LOOP ────────────────────────────────────────────────────────
+let lastReport = 0;
+function loop() {
+  if (plugins['NC_time.js'].active) {
+    kernel.clock.tick();
+    const avgScore = stepMeshReal();
+    for (const s of mesh) {
+      const y = -s.value * 20;
+      const rC = Math.round(200 * (1 - s.score) + 40 * s.score);
+      const gC = Math.round(90 + s.score * 140);
+      s.el.style.transform = `translate3d(${s.x}px, ${y}px, ${s.z}px)`;
+      s.el.style.background = `rgba(${rC},${gC},60,0.85)`;
+    }
+    document.getElementById('mrRespo').textContent = plugins['respo.js'].active ? Math.round(avgScore * 100) + '%' : 'deaktiviert';
+    document.getElementById('mrTime').textContent = (kernel.clock.elapsed / 1000).toFixed(1) + 's · läuft';
+    document.getElementById('mrKraft').textContent = plugins['NC_kraft.js'].active ? 'springForce aktiv (0.06)' : 'aus (harter Sprung)';
+    document.getElementById('mrSpace').textContent = plugins['NC_space.js'].active ? axisLabel(new Vec3(mesh[40].x, -mesh[40].value*20, mesh[40].z)) : 'Achsen ausgeblendet';
+    const now = performance.now();
+    if (plugins['respo.js'].active && now - lastReport > 2000) { lastReport = now; report_safe(avgScore); }
+  } else {
+    document.getElementById('mrTime').textContent = kernel.clock.elapsed ? (kernel.clock.elapsed/1000).toFixed(1) + 's · PAUSIERT' : 'pausiert';
+  }
+  requestAnimationFrame(loop);
+}
+function report_safe(score) { autoReportOnce(score); }
+function autoReportOnce(score) {
+  import('../respo-master.js').then(m => m.report('BRAIN', score));
+}
+
+// ─── Orbit per Maus ─────────────────────────────────────────────
+const orbitInner = document.getElementById('orbitInner');
+let orbit = { rotX:-16, rotY:20 }, dragging=false, lx=0, ly=0;
+document.getElementById('stage3d').addEventListener('mousedown', e=>{dragging=true;lx=e.clientX;ly=e.clientY;});
+window.addEventListener('mouseup', ()=>dragging=false);
+window.addEventListener('mousemove', e=>{
+  if(!dragging) return;
+  orbit.rotY += (e.clientX-lx)*0.4; orbit.rotX = Math.max(-70,Math.min(70,orbit.rotX-(e.clientY-ly)*0.4));
+  lx=e.clientX; ly=e.clientY;
+  orbitInner.style.transform = `rotateX(${orbit.rotX}deg) rotateY(${orbit.rotY}deg)`;
+});
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderPlugins();
+applyPluginEffects();
+loop();
+</script>
+</body>
+</html>
