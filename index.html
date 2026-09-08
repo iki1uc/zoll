@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZOLL · Ziellauf · Innen → Außen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #0e141c;
+      --bg-card: #131a24;
+      --border-color: #1e2a3a;
+      --text-primary: #e8edf5;
+      --text-secondary: #9aa8c0;
+      --text-muted: #5a6a7e;
+      --gold: #ffd700;
+      --blue: #4b7cf7;
+      --green: #2ed98c;
+      --red: #f25a6a;
+      --purple: #a78bfa;
+      --cyan: #4dd0e1;
+      --orange: #f5a342;
+      --shadow: 0 8px 32px rgba(0,0,0,0.7);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .container {
+      max-width: 1500px;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 24px 28px 32px;
+    }
+    .header {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; margin-bottom: 20px; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-left .logo {
+      width: 48px; height: 48px;
+      background: var(--gold);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: #000;
+      box-shadow: 0 0 24px rgba(255,215,0,0.25);
+    }
+    .header-left h1 {
+      font-weight: 700; font-size: 26px; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--gold), var(--orange), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-left h1 small {
+      font-weight: 400; -webkit-text-fill-color: var(--text-muted);
+      font-size: 14px; margin-left: 8px;
+    }
+    .zoll-badge {
+      background: var(--bg-card);
+      border: 1px solid var(--gold);
+      border-radius: 100px;
+      padding: 4px 18px;
+      font-size: 12px;
+      color: var(--gold);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .zoll-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse-dot 1.8s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100%{ opacity:1; transform:scale(1); }
+      50%{ opacity:0.4; transform:scale(1.2); }
+    }
+
+    .zoll-flow {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px 12px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    @media (max-width: 900px) { .zoll-flow { grid-template-columns: 1fr 1fr 1fr; } }
+    .zoll-station {
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      transition: 0.3s;
+      min-width: 80px;
+    }
+    .zoll-station .icon { font-size: 28px; display: block; margin-bottom: 4px; }
+    .zoll-station .name { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+    .zoll-station .status {
+      font-size: 9px; color: var(--text-muted); margin-top: 2px;
+    }
+    .zoll-station.active { border-color: var(--gold); background: rgba(255,215,0,0.05); }
+    .zoll-station.active .status { color: var(--gold); }
+    .zoll-station.done { border-color: var(--green); background: rgba(46,217,140,0.05); }
+    .zoll-station.done .status { color: var(--green); }
+    .zoll-station.error { border-color: var(--red); background: rgba(242,90,106,0.05); }
+    .zoll-station.error .status { color: var(--red); }
+
+    .steady-line {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      gap: 20px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      margin-bottom: 20px;
+    }
+    .steady-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .steady-item .value { font-weight: 700; color: var(--text-primary); }
+    .steady-item .value.gold { color: var(--gold); }
+    .steady-item .value.cyan { color: var(--cyan); }
+    .steady-item .value.purple { color: var(--purple); }
+    .steady-item .value.orange { color: var(--orange); }
+    .badge-mode {
+      background: rgba(255,215,0,0.12);
+      border: 1px solid rgba(255,215,0,0.25);
+      padding: 2px 14px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .stat-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .stat-card .value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.purple { color: var(--purple); }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.cyan { color: var(--cyan); }
+    .stat-card .value.orange { color: var(--orange); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 820px) { .main-grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .panel-head h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .panel-head h3 i { color: var(--gold); }
+
+    .log-list {
+      display: flex; flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .log-list::-webkit-scrollbar { width: 3px; }
+    .log-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+    .log-item {
+      display: flex; align-items: flex-start;
+      gap: 8px;
+      padding: 5px 10px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      border-left: 3px solid var(--border-color);
+      font-size: 12px;
+    }
+    .log-item .icon { font-size: 13px; flex-shrink: 0; width: 18px; text-align: center; }
+    .log-item .text { color: var(--text-secondary); line-height: 1.3; }
+    .log-item .text strong { color: var(--text-primary); }
+    .log-item .time { font-size: 10px; color: var(--text-muted); flex-shrink: 0; margin-left: auto; }
+    .log-item.success { border-left-color: var(--green); }
+    .log-item.error { border-left-color: var(--red); }
+    .log-item.warning { border-left-color: var(--gold); }
+    .log-item.info { border-left-color: var(--blue); }
+
+    #scanBox {
+      font-size: 11px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .scan-row {
+      display: flex; justify-content: space-between;
+      padding: 4px 0; border-bottom: 1px solid #0e1620;
+      font-size: 11px;
+    }
+    .scan-row .tid { color: var(--cyan); }
+    .scan-row .role { color: var(--text-secondary); }
+    .scan-row .fp { color: var(--text-muted); }
+    .scan-row.mismatch { background: rgba(255,60,60,0.06); }
+    .scan-row.mismatch .fp { color: var(--red); }
+
+    .sync-bar {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      margin-bottom: 16px;
+    }
+    .sync-bar input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 120px;
+    }
+    .sync-bar input::placeholder { color: var(--text-muted); }
+    .sync-bar button {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+    }
+    .sync-bar button:hover { border-color: var(--gold); color: #fff; }
+    .sync-bar button.sync { border-color: rgba(179,136,255,0.2); color: var(--purple); }
+    .sync-bar button.sync:hover { background: rgba(179,136,255,0.1); }
+
+    .trigger-area {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .btn-primary {
+      background: var(--gold);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 30px;
+      border-radius: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 24px rgba(255,215,0,0.25);
+      font-family: inherit;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(255,215,0,0.4); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: #fff; }
+    .btn-zoll {
+      background: var(--orange);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 8px 24px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+      box-shadow: 0 4px 24px rgba(245,163,66,0.2);
+    }
+    .btn-zoll:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(245,163,66,0.35); }
+
+    @media (max-width: 600px) {
+      .container { padding: 14px; }
+      .header-left h1 { font-size: 18px; }
+      .zoll-flow { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo"><i class="fas fa-arrow-right-arrow-left"></i></div>
+      <h1>ZOLL <small>· Ziellauf · Innen → Außen</small></h1>
+    </div>
+    <div class="zoll-badge">
+      <span class="dot"></span> TARGET · aktiv
+    </div>
+  </header>
+
+  <!-- ZOLL-FLOW: 5 Stationen -->
+  <div class="zoll-flow" id="zollFlow">
+    <div class="zoll-station" data-station="pool">
+      <span class="icon">📦</span>
+      <div class="name">POOL</div>
+      <div class="status">innen · Daten</div>
+    </div>
+    <div class="zoll-station" data-station="sprung">
+      <span class="icon">◉</span>
+      <div class="name">SPRUNG</div>
+      <div class="status">Übergang</div>
+    </div>
+    <div class="zoll-station" data-station="sure">
+      <span class="icon">●</span>
+      <div class="name">SURE</div>
+      <div class="status">Stand</div>
+    </div>
+    <div class="zoll-station" data-station="pipeline">
+      <span class="icon">⚙️</span>
+      <div class="name">PIPEBUILD</div>
+      <div class="status">Verarbeitung</div>
+    </div>
+    <div class="zoll-station" data-station="target">
+      <span class="icon">🎯</span>
+      <div class="name">TARGET</div>
+      <div class="status">außen · Ziel</div>
+    </div>
+  </div>
+
+  <!-- STEADY-LINE -->
+  <div class="steady-line">
+    <div class="steady-item">
+      <i class="fas fa-bullseye" style="color:var(--gold);"></i>
+      Fixpunkt: <span class="value gold" id="fixDisplay">0.763</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-wave-square" style="color:var(--cyan);"></i>
+      Orbit‑Modus: <span class="badge-mode" id="modeDisplay">OCTA</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-rotate" style="color:var(--purple);"></i>
+      STATE: <span class="value purple" id="stateDisplay">STABIL</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-clock" style="color:var(--text-muted);"></i>
+      <span id="timestamp">—</span>
+    </div>
+    <div class="steady-item" style="margin-left:auto;">
+      <span id="roleDisplay" style="font-size:11px;color:var(--text-muted);">👑 LEADER</span>
+      <span style="margin-left:12px;color:var(--orange);font-size:11px;" id="zollStatus">📦 POOL → TARGET</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="label">📦 POOL</div><div class="value gold" id="metricPool">0</div></div>
+    <div class="stat-card"><div class="label">◉ SPRUNG</div><div class="value blue" id="metricSprung">0</div></div>
+    <div class="stat-card"><div class="label">● SURE</div><div class="value purple" id="metricSure">0</div></div>
+    <div class="stat-card"><div class="label">⚙️ PIPEBUILD</div><div class="value orange" id="metricPipebuild">IDLE</div></div>
+    <div class="stat-card"><div class="label">🎯 TARGET</div><div class="value green" id="metricTarget">–</div></div>
+    <div class="stat-card"><div class="label">📡 ZOLL‑Status</div><div class="value cyan" id="zollCodeStatus" style="font-size:14px;">✅ bereit</div></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h3><i class="fas fa-terminal"></i> ZOLL‑Log</h3>
+        <span style="font-size:10px;color:var(--text-muted);">Speed: <span id="speedDisplay">1.0×</span></span>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3><i class="fas fa-users"></i> Rollen‑Scanner</h3>
+        <span style="font-size:10px;color:var(--text-muted);" id="tabCount">1 Tab</span>
+      </div>
+      <div id="scanBox">
+        <div class="scan-row"><span class="tid">—</span><span class="role">—</span><span class="fp">—</span></div>
+      </div>
+      <div id="mismatchLog" style="font-size:10px;color:var(--red);max-height:40px;overflow:auto;margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- SYNC-BAR -->
+  <div class="sync-bar">
+    <i class="fas fa-broadcast" style="color:var(--purple);"></i>
+    <input type="text" id="syncInput" placeholder="Nachricht …" value="zoll:clear">
+    <button class="sync" id="btnSync">🔄 SYNC</button>
+    <button id="btnBroadcast">📢 BC</button>
+    <button id="btnReset">⟲ Reset</button>
+  </div>
+
+  <!-- TRIGGER -->
+  <div class="trigger-area">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" id="btnP4">P4 · start</button>
+      <button class="btn-secondary" id="btnP0">P0 · wake</button>
+      <button class="btn-secondary" id="btnP1">P1 · melt</button>
+      <button class="btn-secondary" id="btnP2">P2 · merge</button>
+      <button class="btn-secondary" id="btnPe">Pe · finalize</button>
+    </div>
+    <button class="btn-zoll" id="btnZoll"><i class="fas fa-arrow-right"></i> ZOLL · Abfertigen → TARGET</button>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   ZOLL – Ziellauf · Innen → Außen
+   ================================================================ */
+
+  // ─── MODULE ─────────────────────────────────────────────────────
+  const SPRUNG = (v) => ({
+    sign: "◉",
+    value: v,
+    next: v + 1,
+    unify: true,
+    mode: "SPRUNG"
+  });
+
+  const SURE = (v) => ({
+    sign: "●",
+    value: v,
+    stand: true,
+    mode: "SURE"
+  });
+
+  const OLDCITY = {
+    HY: () => ({ seg: ["◉","3","9","◎","81","3↺"], cache: false }),
+    PE: () => ({ seg: ["◉","9","◎","81","◆","△","▣"], cache: false }),
+    PER: () => ({ seg: ["3","9","81","◆","756","△","27","▣","3↺"], cache: false })
+  };
+
+  const NEUCITY = {
+    leitbahn: (v) => ({ breite: 9*v, höhe: 27*v, tiefe: 81*v, trans: 243*v }),
+    gegenCache: () => ({ HY: OLDCITY.HY().seg.slice().reverse(), PE: OLDCITY.PE().seg.slice().reverse(), PER: OLDCITY.PER().seg.slice().reverse() }),
+    tmp: (v) => ({ TMPa: v*3, TMPb: v*9, TMPg: v*27 })
+  };
+
+  // ─── PIPELINE ──────────────────────────────────────────────────
+  const PIPELINE_ORDER = ['P4','P0','P1','P2','Pe'];
+  const PIPELINE_MODULES = {
+    P4: { id: "P4-start", action: "Initialisierung", icon: "fa-play" },
+    P0: { id: "P0-wake", action: "Aktivierung", icon: "fa-bolt" },
+    P1: { id: "P1-melt", action: "Transformation", icon: "fa-fire" },
+    P2: { id: "P2-merge", action: "Zusammenführung", icon: "fa-code-merge" },
+    Pe: { id: "Pe-finalize", action: "Abschluss", icon: "fa-flag-checkered" }
+  };
+
+  // ─── ZOLL-STATE ────────────────────────────────────────────────
+  const state = {
+    isRunning: false,
+    status: PIPELINE_ORDER.map(() => 'pending'),
+    results: PIPELINE_ORDER.map(() => null),
+    logs: [],
+    fix: 0.763,
+    modeOrbit: 'OCTA',
+    stateOrbit: 'STABIL',
+    tabId: Math.random().toString(36).slice(2, 6).toUpperCase(),
+    isLeader: false,
+    knownTabs: new Map(),
+    syncCount: 0,
+    // Module
+    pool: { value: 9, qualitaet: 0.82, richtung: "vorwärts" },
+    sprung: SPRUNG(9),
+    sure: SURE(9),
+    oldcity: OLDCITY.HY(),
+    neucity: NEUCITY.leitbahn(3),
+    pipebuild: { process: 'IDLE', norm: 'HELP', output: 'IDLE-HELP' },
+    target: null,
+    zollPassed: false
+  };
+
+  // ─── DOM-REFS ──────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const logEl = $('logList');
+  const scanBox = $('scanBox');
+  const mismatchLog = $('mismatchLog');
+  const zollBtn = $('btnZoll');
+
+  // ─── CODE‑FINGERPRINT ──────────────────────────────────────────
+  function computeFingerprint() {
+    const s = 'zoll-v1' + JSON.stringify(PIPELINE_ORDER);
+    let h = 5381;
+    for (let i=0; i<s.length; i++) h = ((h*33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(16);
+  }
+  const ownFingerprint = computeFingerprint();
+
+  // ─── LEADER‑ELECTION ────────────────────────────────────────────
+  const LEADER_KEY = 'zoll-leader';
+  setInterval(() => {
+    const now = Date.now();
+    const raw = localStorage.getItem(LEADER_KEY);
+    const last = raw ? Number(raw) : 0;
+    if (state.isLeader) {
+      localStorage.setItem(LEADER_KEY, String(now));
+    } else if (now - last > 3000) {
+      localStorage.setItem(LEADER_KEY, String(now));
+      state.isLeader = true;
+      log('👑 Leader übernommen', 'info');
+      updateRoleUI();
+    }
+  }, 1000);
+
+  // ─── BROADCASTCHANNEL ───────────────────────────────────────────
+  let bc = null;
+  try {
+    bc = new BroadcastChannel('zoll');
+    bc.onmessage = (e) => {
+      const data = e.data;
+      if (!data) return;
+      if (data.type === 'fix') {
+        state.fix = data.fix;
+        state.modeOrbit = data.mode || getModeFromFix(data.fix);
+        state.stateOrbit = data.state || 'STABIL';
+        updateSteadyLine();
+        updateSpeed();
+      }
+      if (data.type === 'presence') handlePresence(data);
+      if (data.type === 'sync') {
+        $('syncInput').value = data.payload || '';
+        log(`📨 Empfangen: ${data.payload}`, 'info');
+        state.syncCount++;
+        $('syncCount').textContent = state.syncCount;
+      }
+      if (data.type === 'zoll') {
+        log(`📨 ZOLL-Event empfangen: ${data.status}`, 'info');
+        updateZollUI(data.status);
+      }
+    };
+  } catch (_) {}
+
+  function broadcast(msg) { if(bc) try{bc.postMessage(msg);}catch(_){} }
+
+  // ─── FIX → MODE ──────────────────────────────────────────────────
+  function getModeFromFix(fix) {
+    if (fix < 0.33) return 'IQQ';
+    if (fix < 0.66) return 'NC';
+    if (fix < 0.88) return 'OCTA';
+    return 'A81';
+  }
+
+  // ─── GHOST‑SIM ──────────────────────────────────────────────────
+  function ghostSim() {
+    state.fix += (Math.random() - 0.48) * 0.015;
+    state.fix = Math.min(0.95, Math.max(0.15, state.fix));
+    state.modeOrbit = getModeFromFix(state.fix);
+    state.stateOrbit = state.fix > 0.7 ? 'STABIL' : state.fix > 0.4 ? 'MODERAT' : 'LOW';
+    state.pool.value = Math.round(state.fix * 10);
+    state.pool.qualitaet = 0.5 + state.fix * 0.4;
+    state.sprung = SPRUNG(state.pool.value);
+    state.sure = SURE(state.pool.value);
+    state.neucity = NEUCITY.leitbahn(Math.round(state.fix * 3) || 1);
+    updateSteadyLine();
+    updateSpeed();
+    broadcast({ type: 'fix', fix: state.fix, mode: state.modeOrbit, state: state.stateOrbit });
+    updateStats();
+  }
+  setInterval(ghostSim, 4000);
+  setTimeout(ghostSim, 300);
+
+  // ─── ZOLL – Die Abfertigung ──────────────────────────────────────
+  async function zollAbfertigung() {
+    if (state.isRunning) return;
+    state.isRunning = true;
+    zollBtn.disabled = true;
+    zollBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abfertigung läuft …';
+
+    state.logs = [];
+    log('📦 ZOLL gestartet · Innen → Außen', 'info');
+
+    // Station 1: POOL
+    updateZollStation('pool', 'active');
+    log('📦 POOL · Daten werden geladen: ' + state.pool.value, 'info');
+    await sleep(400);
+
+    // Station 2: SPRUNG
+    updateZollStation('sprung', 'active');
+    state.sprung = SPRUNG(state.pool.value);
+    log(`◉ SPRUNG · Wert ${state.sprung.value} → nächster ${state.sprung.next}`, 'warning');
+    await sleep(400);
+
+    // Station 3: SURE
+    updateZollStation('sure', 'active');
+    state.sure = SURE(state.pool.value);
+    log(`● SURE · Stand ${state.sure.value}`, 'info');
+    await sleep(400);
+
+    // Station 4: PIPEBUILD
+    updateZollStation('pipeline', 'active');
+    const pipeInput = {
+      state: state.running ? "laufend" : "pausiert",
+      cluster: state.isLeader ? "leader" : "follower",
+      mismatch: [...state.knownTabs.values()].some(t => t.mismatch),
+      incomplete: state.pool.value < 3,
+      balanced: state.pool.value > 5 && state.pool.value < 15,
+      ready: state.running && state.isLeader
+    };
+    const process = pipeInput.state === "laufend" && pipeInput.cluster === "leader" ? "ACTIVE" :
+                    pipeInput.state === "laufend" && pipeInput.cluster === "follower" ? "SYNC" :
+                    pipeInput.state === "laufend" ? "WAIT" :
+                    pipeInput.state === "pausiert" ? "HOLD" :
+                    pipeInput.mismatch ? "ERROR" : "IDLE";
+    const norm = pipeInput.cluster !== "leader" && pipeInput.cluster !== "follower" ? "HELP" :
+                 pipeInput.mismatch ? "ERROR" :
+                 pipeInput.incomplete ? "MISS" :
+                 pipeInput.balanced ? "FIT" :
+                 pipeInput.ready ? "RDY" : "FIX";
+    state.pipebuild = { process, norm, output: `${process}-${norm}` };
+    log(`⚙️ PIPEBUILD · ${process} × ${norm} → ${state.pipebuild.output}`, 'success');
+    await sleep(400);
+
+    // Station 5: TARGET (außen)
+    updateZollStation('target', 'active');
+    state.target = {
+      value: state.pool.value * 2,
+      sprung: state.sprung,
+      sure: state.sure,
+      pipebuild: state.pipebuild,
+      mode: state.modeOrbit,
+      timestamp: Date.now(),
+      zollPassed: true
+    };
+    log(`🎯 TARGET · Ziel erreicht! Wert: ${state.target.value}`, 'success');
+
+    // Alle Stationen auf "done"
+    updateZollStation('pool', 'done');
+    updateZollStation('sprung', 'done');
+    updateZollStation('sure', 'done');
+    updateZollStation('pipeline', 'done');
+    updateZollStation('target', 'done');
+
+    state.zollPassed = true;
+    state.isRunning = false;
+    zollBtn.disabled = false;
+    zollBtn.innerHTML = '<i class="fas fa-arrow-right"></i> ZOLL · Abfertigen → TARGET';
+    $('zollStatus').textContent = '🎯 TARGET erreicht';
+    updateStats();
+    broadcast({ type: 'zoll', status: 'done' });
+    log('🏁 ZOLL · Abfertigung abgeschlossen', 'success');
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function updateZollStation(id, status) {
+    const el = document.querySelector(`.zoll-station[data-station="${id}"]`);
+    if (!el) return;
+    el.className = 'zoll-station ' + status;
+    const statusMap = { active: '⚡ läuft …', done: '✓ fertig', error: '✗ fehler' };
+    const statusEl = el.querySelector('.status');
+    if (statusEl && statusMap[status]) statusEl.textContent = statusMap[status];
+  }
+
+  function updateZollUI(status) {
+    $('zollStatus').textContent = status === 'done' ? '🎯 TARGET erreicht' : '📦 POOL → TARGET';
+    $('zollCodeStatus').textContent = status === 'done' ? '✅ abgefertigt' : '✅ bereit';
+    $('zollCodeStatus').style.color = status === 'done' ? 'var(--green)' : 'var(--cyan)';
+  }
+
+  // ─── UPDATE FUNCTIONS ───────────────────────────────────────────
+  function updateSteadyLine() {
+    $('fixDisplay').textContent = state.fix.toFixed(3);
+    $('modeDisplay').textContent = state.modeOrbit;
+    $('stateDisplay').textContent = state.stateOrbit;
+  }
+
+  function updateSpeed() {
+    const speed = (0.5 + state.fix * 1.5).toFixed(1);
+    $('speedDisplay').textContent = speed + '×';
+  }
+
+  function updateRoleUI() {
+    $('roleDisplay').textContent = state.isLeader ? '👑 LEADER' : '👤 FOLLOWER';
+  }
+
+  function updateStats() {
+    $('metricPool').textContent = state.pool.value;
+    $('metricSprung').textContent = state.sprung.value;
+    $('metricSure').textContent = state.sure.value;
+    $('metricPipebuild').textContent = state.pipebuild.output || 'IDLE';
+    $('metricTarget').textContent = state.target ? state.target.value : '–';
+  }
+
+  // ─── PRESENCE / SCANNER ─────────────────────────────────────────
+  function broadcastPresence() {
+    broadcast({
+      type: 'presence',
+      tabId: state.tabId,
+      role: state.isLeader ? 'LEADER' : 'FOLLOWER',
+      fp: ownFingerprint,
+      ts: Date.now()
+    });
+  }
+  setInterval(broadcastPresence, 2500);
+
+  function handlePresence(data) {
+    const prev = state.knownTabs.get(data.tabId);
+    const mismatch = data.fp !== ownFingerprint;
+    if ((!prev || !prev.mismatch) && mismatch) {
+      mismatchLog.innerHTML += `<div>⚠️ Code‑Mismatch → Tab ${data.tabId}</div>`;
+      mismatchLog.scrollTop = mismatchLog.scrollHeight;
+      log(`⚠️ Code‑Mismatch → Tab ${data.tabId}`, 'warning');
+      $('zollCodeStatus').textContent = '⚠️ Mismatch';
+      $('zollCodeStatus').style.color = 'var(--red)';
+    }
+    if (prev && prev.role !== data.role) {
+      log(`🔍 Rollenwechsel → ${data.tabId}: ${prev.role} → ${data.role}`, 'info');
+    }
+    state.knownTabs.set(data.tabId, {
+      role: data.role,
+      fp: data.fp,
+      lastSeen: Date.now(),
+      mismatch
+    });
+    renderScanner();
+  }
+
+  function renderScanner() {
+    const now = Date.now();
+    for (const [id, info] of state.knownTabs) {
+      if (now - info.lastSeen > 5000) state.knownTabs.delete(id);
+    }
+    let html = '';
+    html += `<div class="scan-row"><span class="tid">${state.tabId} (ich)</span><span class="role">${state.isLeader ? 'LEADER' : 'FOLLOWER'}</span><span class="fp">FP ${ownFingerprint}</span></div>`;
+    for (const [id, info] of state.knownTabs) {
+      const cls = info.mismatch ? ' scan-row mismatch' : '';
+      html += `<div class="scan-row${cls}"><span class="tid">${id}</span><span class="role">${info.role}</span><span class="fp">FP ${info.fp}${info.mismatch ? ' ⚠️' : ''}</span></div>`;
+    }
+    scanBox.innerHTML = html;
+    $('tabCount').textContent = (state.knownTabs.size + 1) + ' Tabs';
+  }
+  setInterval(renderScanner, 3000);
+
+  // ─── MANUELLE PIPELINE ──────────────────────────────────────────
+  async function manualStep(idx) {
+    if (state.isRunning) return;
+    const id = PIPELINE_ORDER[idx];
+    const mod = PIPELINE_MODULES[id];
+    state.status = state.status.map((_, i) => i === idx ? 'running' : 'pending');
+    state.results = state.results.map(() => null);
+    state.logs = [];
+
+    log(`🔧 Manuell · ${mod.id} · ${mod.action}`, 'info');
+
+    try {
+      const result = {
+        phase: mod.id,
+        action: mod.action,
+        input: { pool: state.pool, sprung: state.sprung, sure: state.sure },
+        timestamp: Date.now()
+      };
+      state.results[idx] = result;
+      state.status[idx] = 'success';
+      log(`✅ ${mod.id} · fertig`, 'success');
+    } catch (err) {
+      state.status[idx] = 'failed';
+      log(`❌ ${mod.id} · Fehler: ${err.message}`, 'error');
+    }
+    renderLogs();
+    updateStats();
+  }
+
+  // ─── RENDER ──────────────────────────────────────────────────────
+  function renderLogs() {
+    let html = '';
+    state.logs.forEach(log => {
+      html += `<div class="log-item ${log.type}"><span class="icon">${log.icon}</span><span class="text">${log.text}</span><span class="time">${log.time}</span></div>`;
+    });
+    logEl.innerHTML = html;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function getTime() {
+    const now = new Date();
+    return String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  }
+
+  function log(msg, type='info') {
+    const iconMap = { info:'ℹ️', warning:'⚠️', success:'✅', error:'❌' };
+    state.logs.push({ icon: iconMap[type] || 'ℹ️', text: msg, time: getTime(), type });
+    renderLogs();
+  }
+
+  // ─── EVENTS ──────────────────────────────────────────────────────
+  zollBtn.addEventListener('click', zollAbfertigung);
+
+  $('btnReset').addEventListener('click', () => {
+    if (state.isRunning) return;
+    state.status = PIPELINE_ORDER.map(() => 'pending');
+    state.results = PIPELINE_ORDER.map(() => null);
+    state.logs = [];
+    state.target = null;
+    state.zollPassed = false;
+    log('🔄 Reset ausgeführt', 'info');
+    renderLogs();
+    updateStats();
+    updateZollUI('reset');
+    document.querySelectorAll('.zoll-station').forEach(el => {
+      const id = el.dataset.station;
+      const labels = { pool:'innen · Daten', sprung:'Übergang', sure:'Stand', pipeline:'Verarbeitung', target:'außen · Ziel' };
+      el.className = 'zoll-station';
+      const statusEl = el.querySelector('.status');
+      if (statusEl && labels[id]) statusEl.textContent = labels[id];
+    });
+    $('zollStatus').textContent = '📦 POOL → TARGET';
+    $('zollCodeStatus').textContent = '✅ bereit';
+    $('zollCodeStatus').style.color = 'var(--cyan)';
+  });
+
+  $('btnSync').addEventListener('click', () => {
+    const msg = $('syncInput').value.trim() || 'zoll:clear';
+    state.syncCount++;
+    $('syncCount').textContent = state.syncCount;
+    broadcast({ type: 'sync', payload: msg, from: state.tabId });
+    log(`⬆ SYNC: ${msg}`, 'info');
+  });
+
+  $('btnBroadcast').addEventListener('click', () => {
+    const msg = $('syncInput').value.trim() || 'broadcast:zoll';
+    state.syncCount++;
+    $('syncCount').textContent = state.syncCount;
+    broadcast({ type: 'sync', payload: msg, from: state.tabId });
+    log(`📢 BC: ${msg}`, 'info');
+  });
+
+  $('syncInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnSync').click(); });
+
+  $('btnP4').addEventListener('click', () => manualStep(0));
+  $('btnP0').addEventListener('click', () => manualStep(1));
+  $('btnP1').addEventListener('click', () => manualStep(2));
+  $('btnP2').addEventListener('click', () => manualStep(3));
+  $('btnPe').addEventListener('click', () => manualStep(4));
+
+  // ─── TASTATUR ────────────────────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target === $('syncInput')) $('btnSync').click();
+    if (e.key === '1') $('btnP4').click();
+    if (e.key === '2') $('btnP0').click();
+    if (e.key === '3') $('btnP1').click();
+    if (e.key === '4') $('btnP2').click();
+    if (e.key === '5') $('btnPe').click();
+    if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); zollBtn.click(); }
+    if (e.key === ' ' && e.target === document.body) {
+      e.preventDefault();
+      zollBtn.click();
+    }
+  });
+
+  // ─── INIT ────────────────────────────────────────────────────────
+  function init() {
+    log('📦 ZOLL · Ziellauf Innen → Außen · geladen', 'info');
+    log(`🔑 Tab ${state.tabId} · FP ${ownFingerprint}`, 'info');
+    log('⌨️  z=ZOLL  1-5=Pipeline  Leertaste=Abfertigung', 'info');
+    log('🎯 TARGET wartet auf Abfertigung', 'info');
+    updateSteadyLine();
+    updateSpeed();
+    updateRoleUI();
+    updateStats();
+    broadcastPresence();
+    $('zollCodeStatus').textContent = '✅ bereit';
+    $('zollCodeStatus').style.color = 'var(--cyan)';
+  }
+  init();
+</script>
+</body>
+</html>
