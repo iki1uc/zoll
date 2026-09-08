@@ -1,102 +1,56 @@
 // ================================================================
-//  respo-master.js — INDUSTRIE-6.0 / RUN3 / RUN21 / WORLD-HUB
+// R-KERNEL — Continuum · Alive · 24H · Height/Width/Depth
 // ================================================================
 
-const CHANNEL_NAME = 'mainboard-respo-master';
-const STORAGE_KEY  = 'mainboard.respoMaster.state';
-const TTL          = 12000;     // Module sterben nach 12s Inaktivität
-const DEBOUNCE_MS  = 80;        // Broadcast-Debounce
-const SENDER_ID    = crypto.randomUUID();  // eindeutige Tab-ID
+export const R = {
+  // Zeitkörper (Height / Width / Depth)
+  clock: 0,        // Höhe (lineare Zeit)
+  time: 0,         // Breite (relative Zeit)
+  depth: 0,        // Tiefe (Mystery-Lane)
 
-let channel = null;
-try { channel = new BroadcastChannel(CHANNEL_NAME); }
-catch { channel = null; }
+  // R-State (lebender Zustand)
+  state: {
+    alive: true,
+    continuum: true,
+    momentum: 0,     // aus Soccer
+    orbit: 0,        // aus Wetter
+    fix: 0.7,        // RUN3-kompatibel
+  },
 
-// ---------------------------------------------------------------
-// Speicher laden/sichern
-// ---------------------------------------------------------------
-function loadState() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-  catch { return {}; }
-}
+  // R-Memory (24H)
+  memory: {
+    lastUpdate: Date.now(),
+    history: [],
+  },
 
-function saveState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch {}
-}
+  // R-Flow (Innen → Übergang → Außen)
+  flow(input) {
+    return {
+      innen: input,
+      sprung: input + 1,
+      außen: input * 2
+    };
+  },
 
-// ---------------------------------------------------------------
-// Broadcast-Debounce + Duplicate-Filter
-// ---------------------------------------------------------------
-let lastBroadcast = 0;
-const seen = new Set();
+  // R-Update (Höhe/Breite/Tiefe)
+  update() {
+    const now = Date.now();
+    const dt = (now - this.memory.lastUpdate) / 1000;
 
-function safeBroadcast(msg) {
-  const now = Date.now();
-  if (now - lastBroadcast < DEBOUNCE_MS) return;
-  lastBroadcast = now;
+    // Höhe = CLOCK
+    this.clock = (this.clock + dt) % 24;
 
-  const key = msg.name + ':' + msg.version;
-  if (seen.has(key)) return;
-  seen.add(key);
+    // Breite = TIME
+    this.time = (this.time + dt * 0.5) % 12;
 
-  if (channel) channel.postMessage(msg);
-}
+    // Tiefe = Mystery-Lane (Soccer + Wetter)
+    this.depth = (this.state.momentum * 0.6) + (this.state.orbit * 0.4);
 
-// ---------------------------------------------------------------
-// REPORT — Module melden echte Systemwerte
-// ---------------------------------------------------------------
-export function report(name, payload) {
-  const version = Date.now();
+    this.memory.lastUpdate = now;
+    this.memory.history.push({ clock: this.clock, time: this.time, depth: this.depth });
 
-  const state = loadState();
-  state[name] = { payload, ts: version };
-  saveState(state);
+    return { clock: this.clock, time: this.time, depth: this.depth };
+  },
 
-  safeBroadcast({
-    type: 'update',
-    name,
-    payload,
-    version,
-    sender: SENDER_ID
-  });
-}
-
-// ---------------------------------------------------------------
-// GLOBALER STATUS — mit TTL-Filter
-// ---------------------------------------------------------------
-export function getGlobalStatus() {
-  const now = Date.now();
-  const state = loadState();
-  const filtered = {};
-
-  for (const [name, entry] of Object.entries(state)) {
-    if (now - entry.ts <= TTL) filtered[name] = entry;
-  }
-
-  return { modules: filtered };
-}
-
-// ---------------------------------------------------------------
-// Live-Updates abonnieren
-// ---------------------------------------------------------------
-export function onUpdate(callback) {
-  if (!channel) return () => {};
-
-  const handler = (e) => {
-    const data = e.data;
-    if (!data || data.sender === SENDER_ID) return; // kein Echo
-    callback(data);
-  };
-
-  channel.addEventListener('message', handler);
-  return () => channel.removeEventListener('message', handler);
-}
-
-// ---------------------------------------------------------------
-// Automatisches Melden
-// ---------------------------------------------------------------
-export function autoReport(name, getPayloadFn, intervalMs = 3000) {
-  report(name, getPayloadFn());
-  return setInterval(() => report(name, getPayloadFn()), intervalMs);
-}
+  // R-Inject (Module → R)
+  inject(moduleName, payload) {
