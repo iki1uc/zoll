@@ -1,0 +1,8 @@
+<script type="module">
+    import { VEC3_81 } from "./vec3.js";
+
+    window.onload = () => {
+        const out = document.getElementById("output");
+        out.innerHTML = VEC3_81.map(v => v.toString()).join("<br>");
+    };
+</script>

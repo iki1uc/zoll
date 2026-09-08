@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>ALL · ID · Master-Sortierer · Segment-Matrix 6.0</title>
+
+<style>
+  body {
+    background:#000;
+    color:#0f0;
+    font-family:Consolas;
+    padding:20px;
+    text-align:center;
+  }
+
+  #iki1uc-id.segment-matrix {
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+    width:90%;
+    margin:auto;
+  }
+
+  .seg {
+    border:1px solid #0f0;
+    padding:20px;
+    background:#111;
+    font-size:18px;
+    line-height:1.6;
+  }
+
+  .seg[data-type]::before {
+    content: attr(data-type) " · ";
+    color:#6cf;
+    font-weight:bold;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>ALL · ID · Master-Sortierer · Segment-Matrix 6.0</h1>
+
+<div id="iki1uc-id" class="segment-matrix">
+
+  <div class="seg" data-type="HY">
+    ◉ → 3 → 9 → ◎ → 81 → 3 ↺
+  </div>
+
+  <div class="seg" data-type="PE">
+    ◉ → 9 → ◎ → 81 → ◆ → △ → ▣
+  </div>
+
+  <div class="seg" data-type="PER">
+    3 → 9 → 81 → ◆ → 756 → △ → 27 → ▣ → 3
+  </div>
+
+  <div class="seg" data-type="TRANS">
+    ◎ → 81 → ◆ → △
+  </div>
+
+  <div class="seg" data-type="WARB">
+    81 → ◆ → △ → 27
+  </div>
+
+  <div class="seg" data-type="KANAL">
+    756 → △ → 27 → ▣
+  </div>
+
+  <div class="seg" data-type="TMP-alpha">
+    3 → ◎ → 27
+  </div>
+
+  <div class="seg" data-type="TMP-beta">
+    9 → 81 → ▣
+  </div>
+
+  <div class="seg" data-type="TMP-gamma">
+    ◆ → 756 → △
+  </div>
+
+</div>
+
+</body>
+</html>
