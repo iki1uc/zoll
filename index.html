@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ ZOLL · New Continuum · Innen → Außen</title>
+  <title>⚡ ZOLL · Standalone · Innen → Außen</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -113,9 +113,7 @@
     }
     .zoll-station .icon { font-size: 28px; display: block; margin-bottom: 4px; }
     .zoll-station .name { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
-    .zoll-station .status {
-      font-size: 9px; color: var(--text-muted); margin-top: 2px;
-    }
+    .zoll-station .status { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
     .zoll-station.active { border-color: var(--gold); background: rgba(255,215,0,0.05); }
     .zoll-station.active .status { color: var(--gold); }
     .zoll-station.done { border-color: var(--green); background: rgba(46,217,140,0.05); }
@@ -152,6 +150,7 @@
       font-size: 13px;
       color: var(--gold);
     }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -166,18 +165,8 @@
       border-radius: var(--radius-sm);
       padding: 12px 14px;
     }
-    .stat-card .label {
-      font-size: 10px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-    .stat-card .value {
-      font-size: 22px;
-      font-weight: 700;
-      margin-top: 2px;
-    }
+    .stat-card .label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.04em; }
+    .stat-card .value { font-size: 22px; font-weight: 700; margin-top: 2px; }
     .stat-card .value.gold { color: var(--gold); }
     .stat-card .value.blue { color: var(--blue); }
     .stat-card .value.purple { color: var(--purple); }
@@ -202,12 +191,7 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 10px;
     }
-    .panel-head h3 {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      display: flex; align-items: center; gap: 8px;
-    }
+    .panel-head h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
     .panel-head h3 i { color: var(--gold); }
 
     .log-list {
@@ -237,11 +221,7 @@
     .log-item.warning { border-left-color: var(--gold); }
     .log-item.info { border-left-color: var(--blue); }
 
-    #scanBox {
-      font-size: 11px;
-      max-height: 160px;
-      overflow-y: auto;
-    }
+    #scanBox { font-size: 11px; max-height: 160px; overflow-y: auto; }
     .scan-row {
       display: flex; justify-content: space-between;
       padding: 4px 0; border-bottom: 1px solid #0e1620;
@@ -349,18 +329,16 @@
 <body>
 <div class="container">
 
-  <!-- HEADER -->
   <header class="header">
     <div class="header-left">
       <div class="logo"><i class="fas fa-arrow-right-arrow-left"></i></div>
-      <h1>ZOLL <small>· New Continuum · Innen → Außen</small></h1>
+      <h1>ZOLL <small>· Standalone · Innen → Außen</small></h1>
     </div>
     <div class="zoll-badge">
       <span class="dot"></span> <span id="zollBadgeStatus">TARGET · bereit</span>
     </div>
   </header>
 
-  <!-- ZOLL-FLOW: 5 Stationen -->
   <div class="zoll-flow" id="zollFlow">
     <div class="zoll-station" data-station="pool">
       <span class="icon">📦</span>
@@ -389,7 +367,6 @@
     </div>
   </div>
 
-  <!-- STEADY-LINE -->
   <div class="steady-line">
     <div class="steady-item">
       <i class="fas fa-bullseye" style="color:var(--gold);"></i>
@@ -413,7 +390,6 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card"><div class="label">📦 POOL</div><div class="value gold" id="metricPool">0</div></div>
     <div class="stat-card"><div class="label">◉ SPRUNG</div><div class="value blue" id="metricSprung">0</div></div>
@@ -423,7 +399,6 @@
     <div class="stat-card"><div class="label">📡 ZOLL‑Status</div><div class="value cyan" id="zollCodeStatus" style="font-size:14px;">✅ bereit</div></div>
   </div>
 
-  <!-- MAIN GRID -->
   <div class="main-grid">
     <div class="panel">
       <div class="panel-head">
@@ -444,7 +419,6 @@
     </div>
   </div>
 
-  <!-- SYNC-BAR -->
   <div class="sync-bar">
     <i class="fas fa-broadcast" style="color:var(--purple);"></i>
     <input type="text" id="syncInput" placeholder="Nachricht …" value="zoll:clear">
@@ -454,7 +428,6 @@
     <span style="font-size:11px;color:var(--text-muted);">Broadcasts: <span id="syncCount">0</span></span>
   </div>
 
-  <!-- TRIGGER -->
   <div class="trigger-area">
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn-secondary" id="btnP4">P4 · start</button>
@@ -468,17 +441,12 @@
 
 </div>
 
-<script type="module">
+<script>
   // ================================================================
-  // ZOLL · New Continuum – Innen → Außen
-  // Mit voller Respo-Master-Integration, RUN3/RUN21-kompatibel
+  // ZOLL · STANDALONE – Keine Imports, sofort lauffähig
   // ================================================================
 
-  import { report, autoReport, onUpdate, getGlobalStatus } from './respo-master.js';
-
-  // ================================================================
   // STATE
-  // ================================================================
   const state = {
     isRunning: false,
     fix: 0.763,
@@ -495,27 +463,12 @@
     target: null,
     zollPassed: false,
     knownTabs: new Map(),
-    logs: [],
     speed: 1.0,
   };
 
   const $ = id => document.getElementById(id);
   const logList = $('logList');
 
-  // ================================================================
-  // HELPER: Fingerprint
-  // ================================================================
-  function computeFingerprint() {
-    const s = 'zoll-v2' + navigator.userAgent;
-    let h = 5381;
-    for (let i=0; i<s.length; i++) h = ((h*33) ^ s.charCodeAt(i)) >>> 0;
-    return h.toString(16);
-  }
-  const ownFingerprint = computeFingerprint();
-
-  // ================================================================
-  // LOG
-  // ================================================================
   function log(msg, type = 'info') {
     const entry = document.createElement('div');
     entry.className = `log-item ${type}`;
@@ -525,13 +478,8 @@
     logList.appendChild(entry);
     logList.scrollTop = logList.scrollHeight;
     if (logList.children.length > 100) logList.removeChild(logList.firstChild);
-    // Auch an Respo-Master melden
-    report('ZOLL_LOG', { msg, type, time });
   }
 
-  // ================================================================
-  // FIX → MODE
-  // ================================================================
   function getModeFromFix(fix) {
     if (fix < 0.33) return 'IQQ';
     if (fix < 0.66) return 'NC';
@@ -539,9 +487,6 @@
     return 'A81';
   }
 
-  // ================================================================
-  // GHOST-SIM (nur Leader)
-  // ================================================================
   function ghostSim() {
     if (!state.isLeader) return;
     state.fix += (Math.random() - 0.48) * 0.015;
@@ -554,14 +499,9 @@
     state.sure = { sign: '●', value: state.pool.value };
     updateSteadyLine();
     updateSpeed();
-    // Respo-Master Report
-    report('ZOLL_FIX', { fix: state.fix, mode: state.orbitMode, state: state.orbitState });
     updateStats();
   }
 
-  // ================================================================
-  // LEADER-ELECTION (Tie-Break)
-  // ================================================================
   const LEADER_KEY = 'zoll-leader-v2';
   function electLeader() {
     const now = Date.now();
@@ -571,21 +511,16 @@
       state.isLeader = true;
       state.followerExists = false;
       log('👑 Ich bin der Leader', 'success');
-      report('ZOLL_LEADER', { leader: true, ts: now });
     } else {
       state.isLeader = false;
       state.followerExists = true;
       log('👤 Ich bin Follower', 'info');
-      report('ZOLL_LEADER', { leader: false, ts: now });
     }
     updateRoleUI();
   }
   setInterval(electLeader, 5000);
   electLeader();
 
-  // ================================================================
-  // PIPEBUILD (korrigiert mit state.isRunning)
-  // ================================================================
   function buildPipeInput() {
     return {
       state: state.isRunning ? 'laufend' : 'pausiert',
@@ -616,9 +551,6 @@
     return state.pipebuild;
   }
 
-  // ================================================================
-  // ZOLL-ABFERTIGUNG (Innen → Außen)
-  // ================================================================
   async function zollAbfertigung() {
     if (state.isRunning) return;
     state.isRunning = true;
@@ -626,32 +558,26 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abfertigung läuft …';
     log('📦 ZOLL gestartet · Innen → Außen', 'info');
-    report('ZOLL_STATUS', { status: 'started' });
 
-    // Station 1: POOL
     updateStation('pool', 'active');
     log(`📦 POOL · Daten geladen: ${state.pool.value}`, 'info');
     await sleep(400);
 
-    // Station 2: SPRUNG
     updateStation('sprung', 'active');
     state.sprung = { sign: '◉', value: state.pool.value, next: state.pool.value + 1 };
     log(`◉ SPRUNG · Wert ${state.sprung.value} → nächster ${state.sprung.next}`, 'warning');
     await sleep(400);
 
-    // Station 3: SURE
     updateStation('sure', 'active');
     state.sure = { sign: '●', value: state.pool.value };
     log(`● SURE · Stand ${state.sure.value}`, 'info');
     await sleep(400);
 
-    // Station 4: PIPEBUILD
     updateStation('pipeline', 'active');
     const pb = updatePipebuild();
     log(`⚙️ PIPEBUILD · ${pb.process} × ${pb.norm} → ${pb.output}`, 'success');
     await sleep(400);
 
-    // Station 5: TARGET
     updateStation('target', 'active');
     state.target = {
       value: state.pool.value * 2,
@@ -664,7 +590,6 @@
     };
     log(`🎯 TARGET · Ziel erreicht! Wert: ${state.target.value}`, 'success');
 
-    // Alle Stationen auf "done"
     ['pool','sprung','sure','pipeline','target'].forEach(s => updateStation(s, 'done'));
     state.zollPassed = true;
     state.isRunning = false;
@@ -672,7 +597,6 @@
     btn.innerHTML = '<i class="fas fa-arrow-right"></i> ZOLL · Abfertigen → TARGET';
     $('zollStatus').textContent = '🎯 TARGET erreicht';
     updateStats();
-    report('ZOLL_STATUS', { status: 'done', target: state.target });
     log('🏁 ZOLL · Abfertigung abgeschlossen', 'success');
   }
 
@@ -687,9 +611,6 @@
     if (statusEl && statusMap[status]) statusEl.textContent = statusMap[status];
   }
 
-  // ================================================================
-  // UI-UPDATES
-  // ================================================================
   function updateSteadyLine() {
     $('fixDisplay').textContent = state.fix.toFixed(3);
     $('modeDisplay').textContent = state.orbitMode;
@@ -714,28 +635,15 @@
     $('metricTarget').textContent = state.target ? state.target.value : '–';
     $('zollCodeStatus').textContent = state.zollPassed ? '✅ abgefertigt' : '✅ bereit';
     $('zollBadgeStatus').textContent = state.zollPassed ? '🎯 TARGET erreicht' : 'TARGET · bereit';
-    // Respo-Master Report
-    report('ZOLL_STATS', {
-      pool: state.pool.value,
-      sprung: state.sprung?.value,
-      sure: state.sure?.value,
-      pipebuild: state.pipebuild.output,
-      target: state.target?.value,
-      zollPassed: state.zollPassed,
-    });
   }
 
-  // ================================================================
-  // SCANNER / PRESENCE (über Respo-Master onUpdate)
-  // ================================================================
   function renderScanner() {
     const box = $('scanBox');
     const now = Date.now();
-    // Alte Tabs entfernen (> 10s)
     for (const [id, info] of state.knownTabs) {
       if (now - info.lastSeen > 10000) state.knownTabs.delete(id);
     }
-    let html = `<div class="scan-row"><span class="tid">${state.tabId} (ich)</span><span class="role">${state.isLeader ? 'LEADER' : 'FOLLOWER'}</span><span class="fp">FP ${ownFingerprint}</span></div>`;
+    let html = `<div class="scan-row"><span class="tid">${state.tabId} (ich)</span><span class="role">${state.isLeader ? 'LEADER' : 'FOLLOWER'}</span><span class="fp">FP ${Math.random().toString(16).slice(2,8)}</span></div>`;
     for (const [id, info] of state.knownTabs) {
       const cls = info.mismatch ? ' scan-row mismatch' : '';
       html += `<div class="scan-row${cls}"><span class="tid">${id}</span><span class="role">${info.role}</span><span class="fp">FP ${info.fp}${info.mismatch ? ' ⚠️' : ''}</span></div>`;
@@ -744,78 +652,8 @@
     $('tabCount').textContent = (state.knownTabs.size + 1) + ' Tabs';
   }
 
-  // ================================================================
-  // RESPO-MASTER INTEGRATION – Live-Updates empfangen
-  // ================================================================
-  onUpdate((data) => {
-    if (!data || !data.name) return;
-    // Presence von anderen Modulen empfangen
-    if (data.name === 'PRESENCE') {
-      const p = data.payload;
-      if (p.tabId && p.tabId !== state.tabId) {
-        const mismatch = p.fp && p.fp !== ownFingerprint;
-        state.knownTabs.set(p.tabId, {
-          role: p.role || 'FOLLOWER',
-          fp: p.fp || '?',
-          lastSeen: Date.now(),
-          mismatch: !!mismatch,
-        });
-        if (mismatch) {
-          const el = $('mismatchLog');
-          el.innerHTML += `<div>⚠️ Code‑Mismatch → Tab ${p.tabId}</div>`;
-          el.scrollTop = el.scrollHeight;
-          log(`⚠️ Code‑Mismatch → Tab ${p.tabId}`, 'warning');
-        }
-        renderScanner();
-      }
-    }
-    // Founder-Status anzeigen
-    if (data.name === 'FOUNDER') {
-      log(`👑 Founder: ${data.payload.running ? 'läuft' : 'gestoppt'}`, 'info');
-    }
-    // MOVE-Energie anzeigen
-    if (data.name === 'NC_MOVE') {
-      log(`🌀 MOVE-Energie: ${data.payload.totalEnergy || '?'}`, 'info');
-    }
-    // Andere Module
-    if (data.name === 'WETTER' || data.name === 'USER' || data.name === 'SOCCER' || data.name === 'AXIOM') {
-      log(`📡 ${data.name} update empfangen`, 'info');
-    }
-  });
-
-  // ================================================================
-  // AUTO-REPORT (ZOLL meldet sich selbst)
-  // ================================================================
-  autoReport('ZOLL', () => ({
-    running: state.isRunning,
-    leader: state.isLeader,
-    fix: state.fix,
-    mode: state.orbitMode,
-    pool: state.pool.value,
-    target: state.target?.value,
-    zollPassed: state.zollPassed,
-  }), 4000);
-
-  // ================================================================
-  // PRESENCE senden (über Respo-Master)
-  // ================================================================
-  function broadcastPresence() {
-    report('PRESENCE', {
-      tabId: state.tabId,
-      role: state.isLeader ? 'LEADER' : 'FOLLOWER',
-      fp: ownFingerprint,
-      ts: Date.now(),
-    });
-  }
-  setInterval(broadcastPresence, 3000);
-
-  // ================================================================
-  // SYNC / BC (mit syncCount Element)
-  // ================================================================
-  function broadcast(msg) {
-    report('ZOLL_SYNC', { msg, from: state.tabId });
-    log(`📡 Broadcast: ${msg}`, 'info');
-  }
+  // SYNC / BC
+  function broadcast(msg) { log(`📡 Broadcast: ${msg}`, 'info'); }
 
   $('btnSync').addEventListener('click', () => {
     const msg = $('syncInput').value.trim() || 'zoll:clear';
@@ -833,7 +671,6 @@
     state.syncCount++;
     const el = $('syncCount');
     if (el) el.textContent = state.syncCount;
-    report('ZOLL_BC', { msg, from: state.tabId });
     log(`📢 BC: ${msg}`, 'info');
   });
 
@@ -854,31 +691,17 @@
     $('zollStatus').textContent = '📦 POOL → TARGET';
     log('⟲ Reset ausgeführt', 'warning');
     updateStats();
-    report('ZOLL_RESET', { ts: Date.now() });
   });
 
-  // ================================================================
-  // MANUAL PIPELINE
-  // ================================================================
-  const PIPELINE_ORDER = ['P4','P0','P1','P2','Pe'];
-  PIPELINE_ORDER.forEach((step, idx) => {
+  ['P4','P0','P1','P2','Pe'].forEach(step => {
     const btn = document.getElementById('btn' + step);
     if (btn) {
-      btn.addEventListener('click', () => {
-        log(`🛠 Manual Step: ${step}`, 'info');
-        report('ZOLL_MANUAL', { step });
-      });
+      btn.addEventListener('click', () => log(`🛠 Manual Step: ${step}`, 'info'));
     }
   });
 
-  // ================================================================
-  // ZOLL BUTTON
-  // ================================================================
   $('btnZoll').addEventListener('click', zollAbfertigung);
 
-  // ================================================================
-  // KEYBOARD SHORTCUTS
-  // ================================================================
   document.addEventListener('keydown', (e) => {
     if (e.key === '1') { document.getElementById('btnP4')?.click(); e.preventDefault(); }
     if (e.key === '2') { document.getElementById('btnP0')?.click(); e.preventDefault(); }
@@ -889,23 +712,16 @@
     if (e.key === ' ' && e.target === document.body) { e.preventDefault(); $('btnZoll')?.click(); }
   });
 
-  // ================================================================
-  // INIT
-  // ================================================================
   function init() {
-    log('⚡ ZOLL · New Continuum geladen', 'success');
-    log(`🔑 Tab ${state.tabId} · FP ${ownFingerprint}`, 'info');
+    log('⚡ ZOLL · Standalone geladen', 'success');
+    log(`🔑 Tab ${state.tabId}`, 'info');
     log('⌨️  z=ZOLL  1-5=Pipeline  Leertaste=Abfertigung', 'info');
     updateSteadyLine();
     updateSpeed();
     updateRoleUI();
     updateStats();
-    broadcastPresence();
-    // Ghost-Sim starten (nur Leader)
     setInterval(ghostSim, 4000);
-    // Stats regelmäßig aktualisieren
     setInterval(updateStats, 2000);
-    // Scanner regelmäßig rendern
     setInterval(renderScanner, 3000);
     log('🌐 ZOLL ist bereit für Innen→Außen', 'success');
   }
