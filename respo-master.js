@@ -48,7 +48,7 @@ export function onUpdate(callback) {
   return () => channel.removeEventListener('message', handler);
 }
 
-// --- Automatisches Melden (Founder, KOOP, NC-MOVE) ---
+// --- Automatisches Melden ---
 export function autoReport(name, getPayloadFn, intervalMs = 3000) {
   report(name, getPayloadFn());
   return setInterval(() => report(name, getPayloadFn()), intervalMs);
