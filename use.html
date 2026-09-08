@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>IKI1UC · PIPELINE4 · REAL‑MODE + ORDER‑PIPELINE</title>
+
+<style>
+    body { background:#0b0b0b; color:#e0e0e0; font-family:Consolas, monospace; padding:15px; margin:0; }
+    .container { max-width:1300px; margin:0 auto; }
+    h1 { color:#6cf; font-size:1.3rem; margin:0 0 8px 0; }
+    h2 { color:#8ab0c0; font-size:13px; margin:0 0 8px 0; border-bottom:1px solid #2a3a4a; padding-bottom:4px; }
+    .flex { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:4px 0; }
+    .panel { background:#111; border:1px solid #2a3a4a; border-radius:8px; padding:10px; }
+    .badge { display:inline-block; padding:2px 12px; border-radius:12px; font-size:11px; border:1px solid #2a3a4a; }
+    .badge.leader { border-color:#ffd700; color:#ffd700; background:#1a1a0a; }
+    .badge.follower { border-color:#888; color:#888; }
+    .badge.sync { border-color:#8cf0d0; color:#8cf0d0; }
+    .badge.aktiv { border-color:#8cf0d0; color:#8cf0d0; }
+    .badge.pause { border-color:#f0d080; color:#f0d080; }
+    .btn { padding:5px 14px; background:#222; color:#fff; border:1px solid #555; cursor:pointer; font-family:Consolas, monospace; font-size:13px; border-radius:4px; }
+    .btn:hover { border-color:#6cf; }
+    .btn.active { border-color:#6cf; background:#2a3a4a; }
+    input[type="range"] { width:100px; background:#222; accent-color:#6cf; }
+    .label { color:#8ab0c0; font-size:12px; }
+
+    /* ===== PIPELINE4 REAL-MODE LAYOUT ===== */
+    .p4-grid {
+        display:grid;
+        grid-template-columns: 1fr 1.3fr 1fr;
+        grid-template-rows: auto auto;
+        gap:12px;
+        margin:12px 0;
+    }
+    @media (max-width:900px) { .p4-grid { grid-template-columns:1fr; } }
+
+    /* IX bars */
+    .ix-row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:12px; }
+    .ix-row .ix-label { min-width:42px; color:#8ab0c0; }
+    .ix-bar-track { flex:1; background:#1a2226; border-radius:4px; height:14px; overflow:hidden; }
+    .ix-bar-fill { height:100%; border-radius:4px; transition:width 0.15s linear; }
+    .ix-bar-fill.iqq { background:#ffd700; }
+    .ix-bar-fill.octa { background:#6cf; }
+    .ix-bar-fill.a81 { background:#b388ff; }
+    .ix-val { min-width:28px; text-align:right; color:#e0e0e0; }
+
+    /* IO hexagon */
+    .io-wrap { display:flex; justify-content:center; align-items:center; }
+    #ioHex { width:180px; height:180px; }
+    .io-seg { fill:#1a2226; stroke:#333; stroke-width:1; transition:fill 0.2s; }
+    .io-seg.active { fill:#6cf; }
+    .io-seg-label { fill:#8ab0c0; font-size:9px; font-family:Consolas; text-anchor:middle; }
+    .io-seg-label.active { fill:#000; font-weight:bold; }
+
+    /* NORM bar */
+    .norm-bar { display:flex; gap:4px; margin-top:8px; }
+    .norm-field { flex:1; text-align:center; padding:8px 2px; border-radius:4px; background:#1a2226; color:#5a7a8a; font-size:11px; border:1px solid #263038; }
+    .norm-field.active.FIT { background:#0f3a2f; color:#8cf0d0; border-color:#8cf0d0; }
+    .norm-field.active.FIX { background:#0f2a3a; color:#6cf; border-color:#6cf; }
+    .norm-field.active.MISS { background:#3a2f0f; color:#f0d080; border-color:#f0d080; }
+    .norm-field.active.RDY { background:#1a2a3a; color:#9ac4e0; border-color:#9ac4e0; }
+    .norm-field.active.ERROR { background:#3a0f0f; color:#ff6b6b; border-color:#ff6b6b; }
+    .norm-field.active.HELP { background:#2a0f3a; color:#d080ff; border-color:#d080ff; }
+
+    /* OI matrix */
+    #oiMatrix { border-collapse:collapse; font-size:10px; width:100%; }
+    #oiMatrix td { border:1px solid #1a2226; text-align:center; padding:4px 2px; color:#3a4a5a; }
+    #oiMatrix td.rowlabel { color:#8ab0c0; font-weight:bold; text-align:right; padding-right:6px; border:none; }
+    #oiMatrix td.active { background:#ffd700; color:#000; font-weight:bold; border-radius:3px; }
+    #oiValue { text-align:center; margin-top:8px; font-size:15px; color:#ffd700; font-weight:bold; }
+
+    /* ===== ORDER-PIPELINE (neu, parallele 5. Achse) ===== */
+    .order-row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+    .order-chip { padding:6px 16px; border-radius:6px; font-weight:bold; font-size:13px; border:1px solid #2a3a4a; background:#1a2226; color:#5a7a8a; min-width:80px; text-align:center; }
+    .order-arrow { color:#3a4a5a; font-size:16px; }
+    #orderOutput { font-size:16px; font-weight:bold; color:#ffd700; }
+    .order-input-dump { font-size:10px; color:#5a7a8a; margin-top:6px; }
+
+    /* ORBIT / SCANNER (unten) */
+    .bottom-grid { display:grid; grid-template-columns: 1.4fr 1fr; gap:12px; margin-top:12px; }
+    @media (max-width:900px) { .bottom-grid { grid-template-columns:1fr; } }
+    #orbitCanvas { background:#000; border:1px solid #333; display:block; width:100%; height:auto; aspect-ratio:700/260; }
+    #tabScanBox { font-size:11px; max-height:110px; overflow:auto; background:#0a0a12; border-radius:4px; padding:4px; }
+    .tab-row { display:flex; gap:8px; align-items:center; padding:2px 4px; border-bottom:1px solid #1a2226; }
+    .tab-row .tid { color:#6cf; min-width:80px; }
+    .tab-row .trole { min-width:60px; }
+    .tab-row .tfp { color:#5a7a8a; min-width:70px; }
+    .tab-row.mismatch { background:rgba(255,80,80,0.08); }
+    .tab-row.mismatch .tfp { color:#ff6b6b; }
+    .tab-row.agent .trole { color:#ff8a5c; }
+    .tab-row.agent-p9 .trole { color:#b388ff; }
+    #mismatchLog { font-size:11px; max-height:70px; overflow:auto; margin-top:4px; color:#ff9b9b; }
+    #log { background:#111; padding:8px; height:90px; overflow:auto; font-size:11px; margin-top:8px; border:1px solid #2a3a4a; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="flex" style="justify-content:space-between;">
+    <h1>🔧 IKI1UC · PIPELINE4 <span style="color:#5a7a8a;font-size:13px;font-weight:300;">REAL‑MODE · IX/IO/NORM/OI + ORDER‑PIPELINE</span></h1>
+    <div>
+      <span class="badge leader" id="roleStatus">LEADER</span>
+      <span class="badge sync" id="syncStatus">● verbunden</span>
+      <span style="color:#6cf;font-size:12px;" id="tabIdLabel">–</span>
+    </div>
+  </div>
+
+  <!-- STEUERUNG -->
+  <div class="flex">
+    <button class="btn" id="btnPlay">⏸ Pause</button>
+    <button class="btn" id="btnStep">▶ Schritt</button>
+    <button class="btn" id="btnReset">⟲ Reset</button>
+    <span class="label">Speed</span>
+    <input type="range" id="speedSlider" min="1" max="10" value="3">
+    <span class="label" id="speedLabel">3×</span>
+    <button class="btn" id="btnModeIQQ">IQQ</button>
+    <button class="btn" id="btnModeOCTA">OCTA</button>
+    <button class="btn" id="btnModeA81">A81</button>
+    <button class="btn" id="btnModeNC">🤖 NC</button>
+    <button class="btn" id="btnModeP9">🧩 P9</button>
+  </div>
+
+  <!-- ===== PIPELINE4 REAL-MODE PANELS ===== -->
+  <div class="p4-grid">
+
+    <!-- LINKS: IX-Vektor -->
+    <div class="panel">
+      <h2>🟦 IX — Input‑Vektor</h2>
+      <div class="ix-row">
+        <span class="ix-label">IQQ</span>
+        <div class="ix-bar-track"><div class="ix-bar-fill iqq" id="ixBarIQQ" style="width:0%"></div></div>
+        <span class="ix-val" id="ixValIQQ">0</span>
+      </div>
+      <div class="ix-row">
+        <span class="ix-label">OCTA</span>
+        <div class="ix-bar-track"><div class="ix-bar-fill octa" id="ixBarOCTA" style="width:0%"></div></div>
+        <span class="ix-val" id="ixValOCTA">0</span>
+      </div>
+      <div class="ix-row">
+        <span class="ix-label">A81</span>
+        <div class="ix-bar-track"><div class="ix-bar-fill a81" id="ixBarA81" style="width:0%"></div></div>
+        <span class="ix-val" id="ixValA81">0</span>
+      </div>
+      <div style="font-size:10px;color:#5a7a8a;margin-top:6px;">
+        IX = [axiomCount.IQQ, axiomCount.OCTA, axiomCount.A81] — Balken relativ zum größten aktuellen Wert.
+      </div>
+    </div>
+
+    <!-- MITTE OBEN: IO-Hexagon -->
+    <div class="panel">
+      <h2>🟩 IO — Funktionsachse (6 Zustände)</h2>
+      <div class="io-wrap">
+        <svg id="ioHex" viewBox="0 0 120 120"></svg>
+      </div>
+      <div style="font-size:10px;color:#5a7a8a;text-align:center;margin-top:4px;">
+        IO = dominante IX‑Achse × 2 + (running ? 1 : 0) → aktives Segment leuchtet
+      </div>
+
+      <!-- MITTE UNTEN: NORM-Leiste -->
+      <h2 style="margin-top:12px;">🟧 NORM — Normmodul</h2>
+      <div class="norm-bar" id="normBar">
+        <div class="norm-field" data-norm="FIT">FIT</div>
+        <div class="norm-field" data-norm="FIX">FIX</div>
+        <div class="norm-field" data-norm="MISS">MISS</div>
+        <div class="norm-field" data-norm="RDY">RDY</div>
+        <div class="norm-field" data-norm="ERROR">ERROR</div>
+        <div class="norm-field" data-norm="HELP">HELP</div>
+      </div>
+    </div>
+
+    <!-- RECHTS: OI-Matrix -->
+    <div class="panel">
+      <h2>🟥 OI — Output‑Achse (IO × NORM)</h2>
+      <table id="oiMatrix"></table>
+      <div id="oiValue">OI = —</div>
+    </div>
+
+  </div>
+
+  <!-- ===== ORDER-PIPELINE (neu, parallele 5. Achse) ===== -->
+  <div class="panel">
+    <h2>⭐ ORDER‑PIPELINE — PROCESS × NORM → OUTPUT</h2>
+    <div class="order-row">
+      <div class="order-chip" id="orderProcessChip">—</div>
+      <span class="order-arrow">×</span>
+      <div class="order-chip" id="orderNormChip">—</div>
+      <span class="order-arrow">→</span>
+      <div id="orderOutput">—</div>
+    </div>
+    <div class="order-input-dump" id="orderInputDump">input = —</div>
+  </div>
+
+  <!-- ===== ORBIT + SCANNER (unten) ===== -->
+  <div class="bottom-grid">
+    <div>
+      <canvas id="orbitCanvas" width="700" height="260"></canvas>
+    </div>
+    <div class="panel">
+      <h2>🔍 ROLLEN‑ &amp; CODE‑SCANNER</h2>
+      <div id="tabScanBox">⏳ Warte auf andere Tabs …</div>
+      <div id="mismatchLog"></div>
+    </div>
+  </div>
+
+  <div id="log">🔧 PIPELINE4 REAL‑MODE + ORDER‑PIPELINE · gestartet</div>
+
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   IKI1UC · PIPELINE4 · REAL‑MODE + ORDER‑PIPELINE
+
+   IX/IO/NORM/OI: unverändert aus v7 (siehe dortiger Kommentar).
+
+   NEU: ORDER_PIPELINE — eine zweite, parallel laufende Achse
+   (PROCESS × NORM → OUTPUT), wie zuletzt spezifiziert. Wichtig:
+   das ist eine EIGENSTÄNDIGE Achse mit eigenem NORM-Wert (gleiche
+   6 Label wie oben, aber eigene Berechnung, eigener State) — sie
+   ersetzt nicht die IX/IO/NORM/OI-Panels, sie läuft daneben.
+
+   INPUT für ORDER_PIPELINE, komplett aus echtem State abgeleitet:
+     state:      "laufend" | "pausiert"     ← state.running
+     cluster:    "leader" | "follower" | "none"
+                 ← state.isLeader bzw. ob im localStorage ein
+                   frischer Leader-Eintrag eines ANDEREN Tabs steht
+     mismatch:   true, wenn irgendein Tab im Scanner als
+                 Code-Mismatch markiert ist
+     incomplete: true, wenn IX noch eine 0-Komponente hat
+     balanced:   true, wenn IX max/min-Abstand ≤ 20 %
+     ready:      true, wenn running && cluster === "leader"
+
+   PROCESS:
+     ACTIVE → laufend + leader
+     SYNC   → laufend + follower
+     WAIT   → laufend + cluster none (Wahl läuft gerade)
+     HOLD   → pausiert
+     ERROR  → (nur falls oben nichts zutrifft) mismatch
+     IDLE   → Rest
+
+   NORM (Reihenfolge wie zuletzt festgelegt):
+     HELP → cluster ist weder leader noch follower
+     ERROR → mismatch
+     MISS → incomplete
+     FIT → balanced
+     RDY → ready
+     FIX → sonst
+   ================================================================ */
+
+  // ─── ORBIT / KONFIGURATION ─────────────────────────────────────
+  const ORBIT = [
+    "◉","↗","↘","3","9","↘","↗","◎","↗","↘","3","9","↘","↗",
+    "◎","↗","↘","81","◆","↘","↗","△","↗","↘","27","▣","↘","↗","3","↺"
+  ];
+  const AXIOM_MAP = {
+    '3':'IQQ','9':'IQQ',
+    '◎':'OCTA','◉':'OCTA','◆':'OCTA','△':'OCTA','▣':'OCTA','↺':'OCTA',
+    '81':'A81','27':'A81','243':'A81','729':'A81'
+  };
+  const PATH_BASE = 5;
+  const STEP_BASE = 800, STEP_FACTOR = 60, STEP_MIN = 100;
+  const LEADER_KEY = 'iki1uc-orbit-leader';
+  const LEADER_TIMEOUT = 2000;
+  const HEARTBEAT_EVERY = 500;
+  const CLAIM_JITTER_MAX = 120;
+  const NORM_ORDER = ['FIT','FIX','MISS','RDY','ERROR','HELP'];
+  const PROCESS_COLORS = { ACTIVE:'#8cf0d0', SYNC:'#6cf', WAIT:'#f0d080', HOLD:'#aaaaaa', ERROR:'#ff6b6b', IDLE:'#555' };
+  const NORM_COLORS = { FIT:'#8cf0d0', FIX:'#6cf', MISS:'#f0d080', RDY:'#9ac4e0', ERROR:'#ff6b6b', HELP:'#d080ff' };
+
+  const state = {
+    index:0, running:true, speed:3, mode:'IQQ',
+    history:[], axiomCount:{ IQQ:0, OCTA:0, A81:0, NC:0, P9:0 },
+    isLeader:false, accumulator:0, lastFrame:null,
+    tabId: Math.random().toString(36).slice(2,8).toUpperCase(),
+    knownTabs: new Map(),
+    io:1, norm:'RDY', oi:'OI1-RDY', prevNorm:null, fixArmed:false,
+    order: { PROCESS:'IDLE', NORM:'HELP', OUTPUT:'IDLE-HELP' }
+  };
+
+  document.getElementById('tabIdLabel').textContent = state.tabId;
+
+  // ─── FINGERPRINT ────────────────────────────────────────────────
+  function computeFingerprint() {
+    const parts = ['pipeline4-real-order', ORBIT.length, PATH_BASE, LEADER_TIMEOUT, HEARTBEAT_EVERY, STEP_BASE, STEP_FACTOR, STEP_MIN, JSON.stringify(AXIOM_MAP)].join('|');
+    let hash = 5381;
+    for (let i=0;i<parts.length;i++) hash = ((hash*33) ^ parts.charCodeAt(i)) >>> 0;
+    return hash.toString(16);
+  }
+  const ownFingerprint = computeFingerprint();
+
+  // ─── LEADER‑ELECTION ────────────────────────────────────────────
+  function readLeader() { try { const r=localStorage.getItem(LEADER_KEY); return r?JSON.parse(r):null; } catch(_){return null;} }
+  function writeLeader() { localStorage.setItem(LEADER_KEY, JSON.stringify({id:state.tabId, ts:Date.now()})); }
+  function tryClaimLeadership() {
+    const now = Date.now();
+    const entry = readLeader();
+    if (state.isLeader) {
+      if (entry && entry.id !== state.tabId) { state.isLeader=false; updateRoleBadge(); log(`⚠️ Leader‑Konflikt → zurück (${entry.id})`); return; }
+      writeLeader(); return;
+    }
+    if (!entry || now-entry.ts > LEADER_TIMEOUT) {
+      writeLeader();
+      const jitter = Math.floor(Math.random()*CLAIM_JITTER_MAX);
+      setTimeout(() => {
+        const check = readLeader();
+        if (check && check.id === state.tabId) { state.isLeader=true; updateRoleBadge(); log('👑 Leader übernommen'); }
+      }, jitter);
+    }
+  }
+  function updateRoleBadge() {
+    const el = document.getElementById('roleStatus');
+    el.textContent = state.isLeader ? 'LEADER' : 'FOLLOWER';
+    el.className = 'badge ' + (state.isLeader ? 'leader' : 'follower');
+  }
+  setInterval(tryClaimLeadership, HEARTBEAT_EVERY);
+  tryClaimLeadership();
+
+  // ─── BROADCASTCHANNEL ───────────────────────────────────────────
+  let bc = null;
+  try {
+    bc = new BroadcastChannel('iki1uc-orbit');
+    bc.onmessage = (e) => {
+      const data = e.data; if (!data) return;
+      if (data.type==='orbit.step' && !state.isLeader) {
+        state.index=data.index; state.history.push(data.index);
+        if (state.history.length>10) state.history.shift();
+        document.getElementById('syncStatus').textContent='● synchronisiert';
+        log(`📡 Sync‑Schritt: ${data.symbol}`);
+      }
+      if (data.type==='orbit.reset' && !state.isLeader) { state.index=0; state.history=[]; log('📡 Sync‑Reset'); }
+      if (data.type==='orbit.mode' && !state.isLeader) { state.mode=data.mode; applyModeButtons(data.mode); }
+      if (data.type==='presence') handlePresence(data);
+      if (data.type==='nc.move' && !state.isLeader) log(`📡 NC‑Move empfangen (#${data.index})`);
+      if (data.type==='p9.move' && !state.isLeader) log(`📡 P9‑Move empfangen (#${data.index})`);
+    };
+    setTimeout(()=>{ document.getElementById('syncStatus').textContent='● verbunden'; }, 500);
+  } catch(_) { document.getElementById('syncStatus').textContent='○ kein BC'; }
+  function broadcast(msg){ if(bc) try{bc.postMessage(msg);}catch(_){} }
+
+  // ─── SCANNER / PRESENCE ─────────────────────────────────────────
+  function broadcastPresence() {
+    broadcast({ type:'presence', tabId:state.tabId, role:state.isLeader?'LEADER':'FOLLOWER', fingerprint:ownFingerprint, ts:Date.now() });
+    if (state.mode==='NC' && state.isLeader) broadcast({ type:'presence', tabId:'NC-AGENT', role:'AGENT', fingerprint:'nc-agent-1', ts:Date.now() });
+    if (state.mode==='P9' && state.isLeader) broadcast({ type:'presence', tabId:'PIPELINE9', role:'AGENT', fingerprint:'p9-v5', ts:Date.now() });
+  }
+  function handlePresence(data) {
+    const prev = state.knownTabs.get(data.tabId);
+    const mismatch = data.role!=='AGENT' && data.fingerprint!==ownFingerprint;
+    if ((!prev || !prev.mismatch) && mismatch) pushMismatchLog(`⚠️ Code‑Mismatch → ${data.tabId} (FP ${data.fingerprint} ≠ ${ownFingerprint})`);
+    if (prev && prev.role!==data.role) pushMismatchLog(`🔍 Rollenwechsel → ${data.tabId}: ${prev.role} → ${data.role}`);
+    if (data.role==='LEADER' && state.isLeader && data.tabId!==state.tabId) pushMismatchLog(`⚠️ Zwei Leader: ${state.tabId} und ${data.tabId}`);
+    state.knownTabs.set(data.tabId, { role:data.role, fingerprint:data.fingerprint, lastSeen:Date.now(), mismatch });
+    renderScanner();
+  }
+  function pushMismatchLog(msg) {
+    log(msg);
+    const box = document.getElementById('mismatchLog');
+    const line = document.createElement('div'); line.textContent = msg;
+    box.appendChild(line);
+    while (box.children.length>30) box.removeChild(box.firstChild);
+  }
+  function renderScanner() {
+    const box = document.getElementById('tabScanBox');
+    const staleAfter = HEARTBEAT_EVERY*6, now = Date.now();
+    for (const [id,info] of state.knownTabs) if (now-info.lastSeen>staleAfter) state.knownTabs.delete(id);
+    if (state.knownTabs.size===0) { box.textContent='Noch keine anderen Tabs …'; return; }
+    box.innerHTML='';
+    const self = document.createElement('div'); self.className='tab-row';
+    self.innerHTML = `<span class="tid">${state.tabId} (ich)</span><span class="trole">${state.isLeader?'LEADER':'FOLLOWER'}</span><span class="tfp">FP ${ownFingerprint}</span>`;
+    box.appendChild(self);
+    for (const [id,info] of state.knownTabs) {
+      let cls='tab-row'+(info.mismatch?' mismatch':'');
+      if (id==='NC-AGENT') cls+=' agent';
+      if (id==='PIPELINE9') cls+=' agent-p9';
+      const row = document.createElement('div'); row.className=cls;
+      row.innerHTML = `<span class="tid">${id}</span><span class="trole">${info.role}</span><span class="tfp">FP ${info.fingerprint}${info.mismatch?' ⚠️':''}</span>`;
+      box.appendChild(row);
+    }
+  }
+  setInterval(broadcastPresence, HEARTBEAT_EVERY);
+  setInterval(renderScanner, 1000);
+
+  // ─── AGENTEN: MOVE ──────────────────────────────────────────────
+  function ncMove() { state.axiomCount.NC=(state.axiomCount.NC||0)+1; log('🤖 NC‑Agent bewegt sich'); broadcast({type:'nc.move', index:state.index, ts:Date.now()}); }
+  function p9Move() { state.axiomCount.P9=(state.axiomCount.P9||0)+1; log('🧩 P9‑Agent bewegt sich'); broadcast({type:'p9.move', index:state.index, ts:Date.now()}); }
+
+  // ─── PIPELINE4 REAL‑MODE: IX / IO / NORM / OI ───────────────────
+  function computeIX() {
+    return [state.axiomCount.IQQ||0, state.axiomCount.OCTA||0, state.axiomCount.A81||0];
+  }
+
+  function computeIO(ix) {
+    const maxV = Math.max(...ix);
+    const dominant = maxV === 0 ? 0 : ix.indexOf(maxV);
+    return dominant * 2 + (state.running ? 1 : 0);
+  }
+
+  function computeNorm(ix) {
+    const now = Date.now();
+    const leaderEntry = readLeader();
+    const leaderStale = !leaderEntry || (now - leaderEntry.ts > LEADER_TIMEOUT);
+    const anyMismatch = [...state.knownTabs.values()].some(t => t.mismatch);
+    const anyZero = ix.some(v => v === 0);
+
+    let result;
+    if (leaderStale) result = 'HELP';
+    else if (anyMismatch) result = 'ERROR';
+    else if (anyZero) result = 'MISS';
+    else {
+      const maxV = Math.max(...ix), minV = Math.min(...ix);
+      const balanced = maxV > 0 && (maxV - minV) / maxV <= 0.2;
+      if (state.running && balanced) result = 'FIT';
+      else if (state.running && state.isLeader) result = 'RDY';
+      else result = state.fixArmed ? 'FIX' : 'RDY';
+    }
+
+    if (state.prevNorm === 'ERROR' && result !== 'ERROR' && result !== 'HELP' && result !== 'MISS') {
+      state.fixArmed = true;
+      result = 'FIX';
+    } else if (state.prevNorm === 'FIX') {
+      state.fixArmed = false;
+    }
+
+    state.prevNorm = result;
+    return result;
+  }
+
+  // ─── ORDER-PIPELINE (neu, parallele 5. Achse) ───────────────────
+  function computeClusterStatus() {
+    if (state.isLeader) return 'leader';
+    const entry = readLeader();
+    if (entry && (Date.now() - entry.ts <= LEADER_TIMEOUT)) return 'follower';
+    return 'none';
+  }
+
+  function ORDER_PIPELINE(input) {
+    // input = { state, cluster, mismatch, incomplete, balanced, ready }
+    const PROCESS =
+      input.state === "laufend" && input.cluster === "leader"   ? "ACTIVE" :
+      input.state === "laufend" && input.cluster === "follower" ? "SYNC"   :
+      input.state === "laufend"                                  ? "WAIT"   : // cluster = none
+      input.state === "pausiert"                                 ? "HOLD"   :
+      input.mismatch                                              ? "ERROR" :
+      "IDLE";
+
+    const NORM =
+      input.cluster !== "leader" && input.cluster !== "follower" ? "HELP" :
+      input.mismatch   ? "ERROR" :
+      input.incomplete ? "MISS"  :
+      input.balanced   ? "FIT"   :
+      input.ready      ? "RDY"   :
+      "FIX";
+
+    const OUTPUT = `${PROCESS}-${NORM}`;
+    return { PROCESS, NORM, OUTPUT };
+  }
+
+  function updateOrderPipeline(ix) {
+    const anyMismatch = [...state.knownTabs.values()].some(t => t.mismatch);
+    const anyZero = ix.some(v => v === 0);
+    const maxV = Math.max(...ix), minV = Math.min(...ix);
+    const balanced = maxV > 0 && (maxV - minV) / maxV <= 0.2;
+    const cluster = computeClusterStatus();
+
+    const input = {
+      state: state.running ? "laufend" : "pausiert",
+      cluster,
+      mismatch: anyMismatch,
+      incomplete: anyZero,
+      balanced,
+      ready: state.running && cluster === "leader"
+    };
+
+    const order = ORDER_PIPELINE(input);
+    state.order = order;
+
+    const pChip = document.getElementById('orderProcessChip');
+    pChip.textContent = order.PROCESS;
+    pChip.style.color = PROCESS_COLORS[order.PROCESS] || '#5a7a8a';
+    pChip.style.borderColor = PROCESS_COLORS[order.PROCESS] || '#2a3a4a';
+
+    const nChip = document.getElementById('orderNormChip');
+    nChip.textContent = order.NORM;
+    nChip.style.color = NORM_COLORS[order.NORM] || '#5a7a8a';
+    nChip.style.borderColor = NORM_COLORS[order.NORM] || '#2a3a4a';
+
+    document.getElementById('orderOutput').textContent = order.OUTPUT;
+    document.getElementById('orderInputDump').textContent = 'input = ' + JSON.stringify(input);
+  }
+
+  function updatePipelineReal() {
+    const ix = computeIX();
+    const io = computeIO(ix);
+    const norm = computeNorm(ix);
+    const oi = `OI${io}-${norm}`;
+    state.io = io; state.norm = norm; state.oi = oi;
+
+    // IX-Balken
+    const maxIX = Math.max(...ix, 1);
+    document.getElementById('ixBarIQQ').style.width = (ix[0]/maxIX*100) + '%';
+    document.getElementById('ixBarOCTA').style.width = (ix[1]/maxIX*100) + '%';
+    document.getElementById('ixBarA81').style.width = (ix[2]/maxIX*100) + '%';
+    document.getElementById('ixValIQQ').textContent = ix[0];
+    document.getElementById('ixValOCTA').textContent = ix[1];
+    document.getElementById('ixValA81').textContent = ix[2];
+
+    // IO-Hexagon
+    for (let i=0;i<6;i++) {
+      const seg = document.getElementById('ioSeg'+i);
+      const lbl = document.getElementById('ioLbl'+i);
+      if (seg) seg.classList.toggle('active', i===io);
+      if (lbl) lbl.classList.toggle('active', i===io);
+    }
+
+    // NORM-Leiste
+    document.querySelectorAll('.norm-field').forEach(el => {
+      const isActive = el.dataset.norm === norm;
+      el.className = 'norm-field' + (isActive ? ' active ' + norm : '');
+    });
+
+    // OI-Matrix
+    document.querySelectorAll('#oiMatrix td[data-io]').forEach(td => {
+      const isActive = Number(td.dataset.io)===io && td.dataset.norm===norm;
+      td.classList.toggle('active', isActive);
+    });
+    document.getElementById('oiValue').textContent = 'OI = ' + oi;
+
+    // ORDER-PIPELINE (parallele 5. Achse, eigener NORM-Wert)
+    updateOrderPipeline(ix);
+  }
+
+  // ─── IO-HEXAGON AUFBAUEN (einmalig) ─────────────────────────────
+  function buildIOHex() {
+    const svg = document.getElementById('ioHex');
+    const cx=60, cy=60, r=52;
+    let html = '';
+    for (let i=0;i<6;i++) {
+      const a1 = (-90 + i*60) * Math.PI/180;
+      const a2 = (-90 + (i+1)*60) * Math.PI/180;
+      const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+      const x2 = cx + r*Math.cos(a2), y2 = cy + r*Math.sin(a2);
+      const mx = cx + (r*0.62)*Math.cos((a1+a2)/2), my = cy + (r*0.62)*Math.sin((a1+a2)/2);
+      html += `<path id="ioSeg${i}" class="io-seg" d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} L${x2.toFixed(1)},${y2.toFixed(1)} Z"></path>`;
+      html += `<text id="ioLbl${i}" class="io-seg-label" x="${mx.toFixed(1)}" y="${my.toFixed(1)}">IO${i}</text>`;
+    }
+    svg.innerHTML = html;
+  }
+
+  // ─── OI-MATRIX AUFBAUEN (einmalig) ───────────────────────────────
+  function buildOIMatrix() {
+    const table = document.getElementById('oiMatrix');
+    let html = '<tr><td></td>' + NORM_ORDER.map(n => `<td style="color:#8ab0c0;">${n.slice(0,3)}</td>`).join('') + '</tr>';
+    for (let io=0; io<6; io++) {
+      html += `<tr><td class="rowlabel">IO${io}</td>`;
+      NORM_ORDER.forEach(norm => {
+        html += `<td data-io="${io}" data-norm="${norm}">·</td>`;
+      });
+      html += '</tr>';
+    }
+    table.innerHTML = html;
+  }
+
+  // ─── CANVAS (Orbit) ──────────────────────────────────────────────
+  const canvas = document.getElementById('orbitCanvas');
+  const ctx = canvas.getContext('2d');
+  function drawOrbit() {
+    const w=canvas.width, h=canvas.height;
+    ctx.shadowBlur=0; ctx.fillStyle='#000'; ctx.fillRect(0,0,w,h);
+    const history = state.history.slice(-5);
+    history.forEach((idx,i) => {
+      const alpha = 0.1 + (i/PATH_BASE)*0.3;
+      const x = 80 + (w-160)*(i/(PATH_BASE-1));
+      const y = h-30;
+      ctx.fillStyle=`rgba(108,204,255,${alpha})`;
+      ctx.font='16px Consolas'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(ORBIT[idx]||'?', x, y);
+      if(i>0) {
+        ctx.strokeStyle=`rgba(108,204,255,${alpha*0.3})`; ctx.lineWidth=1;
+        const prevX = 80 + (w-160)*((i-1)/(PATH_BASE-1));
+        ctx.beginPath(); ctx.moveTo(prevX,y); ctx.lineTo(x,y); ctx.stroke();
+      }
+    });
+    const symbol = ORBIT[state.index]||'?';
+    ctx.fillStyle='#6cf'; ctx.font='54px Consolas'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.shadowColor='#6cf'; ctx.shadowBlur=20;
+    ctx.fillText(symbol, w/2, h/2-15);
+    ctx.shadowBlur=0;
+    const axiom = (state.mode==='NC'||state.mode==='P9') ? state.mode : (AXIOM_MAP[symbol]||'—');
+    ctx.fillStyle='#5a7a8a'; ctx.font='13px Consolas'; ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(`#${state.index} · ${axiom} · OI ${state.oi} · ORDER ${state.order.OUTPUT}`, w/2, h/2+35);
+    ctx.fillStyle='#3a4a5a'; ctx.font='11px Consolas'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText(`⏩ ${state.speed}× · ${state.mode} · Tab ${state.tabId}`, 12, h-6);
+    ctx.textAlign='right';
+    ctx.fillText(`${state.index+1}/${ORBIT.length}`, w-12, h-6);
+  }
+
+  // ─── ORBIT-STEP ──────────────────────────────────────────────────
+  function stepOrbit() {
+    const next = (state.index+1) % ORBIT.length;
+    state.index = next;
+    state.history.push(next);
+    if (state.history.length>10) state.history.shift();
+
+    const sym = ORBIT[next];
+    if (state.mode==='NC') ncMove();
+    else if (state.mode==='P9') p9Move();
+    else {
+      const axiom = AXIOM_MAP[sym] || null;
+      if (axiom && state.mode===axiom) state.axiomCount[axiom] = (state.axiomCount[axiom]||0)+1;
+    }
+    log(`Orbit‑Schritt → ${sym} (${(state.mode==='NC'||state.mode==='P9')?state.mode:(AXIOM_MAP[sym]||'—')})`);
+    broadcast({ type:'orbit.step', index:state.index, symbol:sym });
+  }
+
+  function togglePlay() {
+    state.running = !state.running;
+    document.getElementById('btnPlay').textContent = state.running ? '⏸ Pause' : '▶ Start';
+  }
+  function resetOrbit() {
+    if (!state.isLeader) { log('⟲ Reset nur Leader'); return; }
+    state.index=0; state.history=[]; state.axiomCount={IQQ:0,OCTA:0,A81:0,NC:0,P9:0};
+    state.accumulator=0; state.prevNorm=null; state.fixArmed=false;
+    log('⟲ Reset'); broadcast({type:'orbit.reset'});
+  }
+  function applyModeButtons(mode) {
+    document.querySelectorAll('[id^="btnMode"]').forEach(b=>b.classList.remove('active'));
+    const btn = document.getElementById('btnMode'+mode); if (btn) btn.classList.add('active');
+  }
+  function setMode(mode) {
+    state.mode = mode; applyModeButtons(mode);
+    log(`🌀 Modus: ${mode}`); broadcast({type:'orbit.mode', mode});
+  }
+
+  function log(msg) {
+    const logBox = document.getElementById('log');
+    const time = new Date().toLocaleTimeString();
+    const line = document.createElement('div'); line.textContent = `[${time}] ${msg}`;
+    logBox.appendChild(line);
+    while (logBox.children.length>60) logBox.removeChild(logBox.firstChild);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  // ─── EVENTS ──────────────────────────────────────────────────────
+  document.getElementById('btnPlay').addEventListener('click', togglePlay);
+  document.getElementById('btnStep').addEventListener('click', ()=>{ if(state.isLeader) stepOrbit(); else log('⏭ nur Leader'); });
+  document.getElementById('btnReset').addEventListener('click', resetOrbit);
+  document.getElementById('btnModeIQQ').addEventListener('click', ()=>setMode('IQQ'));
+  document.getElementById('btnModeOCTA').addEventListener('click', ()=>setMode('OCTA'));
+  document.getElementById('btnModeA81').addEventListener('click', ()=>setMode('A81'));
+  document.getElementById('btnModeNC').addEventListener('click', ()=>setMode('NC'));
+  document.getElementById('btnModeP9').addEventListener('click', ()=>setMode('P9'));
+
+  const speedSlider = document.getElementById('speedSlider');
+  const speedLabel = document.getElementById('speedLabel');
+  speedSlider.addEventListener('input', ()=>{ state.speed=parseInt(speedSlider.value,10); speedLabel.textContent=state.speed+'×'; });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key===' ') { e.preventDefault(); togglePlay(); }
+    if (e.key==='ArrowRight' && state.isLeader) stepOrbit();
+    if (e.key==='r'||e.key==='R') resetOrbit();
+    if (e.key==='1') setMode('IQQ');
+    if (e.key==='2') setMode('OCTA');
+    if (e.key==='3') setMode('A81');
+    if (e.key==='4') setMode('NC');
+    if (e.key==='5') setMode('P9');
+  });
+
+  // ─── HAUPT-LOOP ──────────────────────────────────────────────────
+  function loop(now) {
+    if (state.lastFrame===null) state.lastFrame = now;
+    const delta = now - state.lastFrame;
+    state.lastFrame = now;
+
+    if (state.running && state.isLeader) {
+      state.accumulator += delta;
+      const stepTime = Math.max(STEP_MIN, STEP_BASE - state.speed*STEP_FACTOR);
+      let guard=0;
+      while (state.accumulator>=stepTime && guard<20) { stepOrbit(); state.accumulator-=stepTime; guard++; }
+    } else { state.accumulator = 0; }
+
+    drawOrbit();
+    updatePipelineReal();
+    requestAnimationFrame(loop);
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────
+  function init() {
+    buildIOHex();
+    buildOIMatrix();
+    state.history.push(0);
+    updateRoleBadge();
+    applyModeButtons('IQQ');
+    broadcastPresence();
+    log('🔧 PIPELINE4 REAL‑MODE + ORDER‑PIPELINE gestartet');
+    log(`🆔 Tab ${state.tabId} · FP ${ownFingerprint}`);
+    log('⌨️  Leertaste=Pause  →=Schritt  r=Reset  1/2/3/4/5=Modus');
+    log('📦 IX/IO/NORM/OI + ⭐ ORDER-PIPELINE laufen parallel, beide aus echtem State');
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('error', (e)=>log('⚠️ Fehler: '+e.message), true);
+  setInterval(updateRoleBadge, HEARTBEAT_EVERY);
+  init();
+</script>
+
+</body>
+</html>
