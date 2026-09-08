@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌍 WORLD · HUB · ZOLL + ORDER‑PIPELINE</title>
+  <style>
+    /* ===== GLOBAL ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0d11;
+      color: #c8d6e5;
+      font-family: 'Consolas', 'Courier New', monospace;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 2.4rem;
+      color: #6cf;
+      text-shadow: 0 0 20px #3a6f9f88;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+    }
+    .subhead {
+      color: #7a9bb5;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+      border-left: 3px solid #6cf;
+      padding-left: 15px;
+    }
+    .panel {
+      background: #11161e;
+      border: 1px solid #2a3f4f;
+      border-radius: 12px;
+      padding: 22px 28px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s;
+    }
+    .panel:hover { border-color: #4a8ab0; }
+    .panel h2 {
+      font-size: 1.3rem;
+      color: #9ac7e0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .panel .desc {
+      font-size: 0.85rem;
+      color: #8aacbf;
+      margin-bottom: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      background: #1a2a36;
+      color: #9ac7e0;
+      margin-left: 8px;
+    }
+    .badge.online { background: #1f4a3a; color: #6fdb6f; }
+    .badge.offline { background: #4a2a2a; color: #e06050; }
+
+    .btn {
+      display: inline-block;
+      background: #1c2a36;
+      color: #e0f0fa;
+      border: 1px solid #3a5a6a;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      margin: 4px 8px 4px 0;
+    }
+    .btn:hover {
+      background: #2a4050;
+      border-color: #6cf;
+      box-shadow: 0 0 15px #2a6f9f55;
+      transform: scale(1.02);
+    }
+    .btn-gold {
+      background: #b8860b;
+      border-color: #ffb347;
+      color: #fff;
+    }
+    .btn-gold:hover {
+      background: #d4a017;
+      border-color: #ffd700;
+      box-shadow: 0 0 20px #ffb34788;
+    }
+    .btn-zoll {
+      background: #cc5500;
+      border-color: #ff8c00;
+      color: #fff;
+    }
+    .btn-zoll:hover {
+      background: #e06600;
+      border-color: #ffaa33;
+      box-shadow: 0 0 20px #ff8c0088;
+    }
+
+    /* ===== ZOLL‑FLOW (5 Stationen) ===== */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 10px 0 6px;
+    }
+    .flow-item {
+      background: #0c131c;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      border-left: 4px solid #2a6f9f;
+    }
+    .flow-item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #6a8fa0;
+    }
+    .flow-item .value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-top: 2px;
+      min-height: 2.4rem;
+    }
+    .flow-item .sub {
+      font-size: 0.7rem;
+      color: #6a8fa0;
+    }
+
+    /* ===== STEADY‑LINE ===== */
+    .steady-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 30px;
+      margin: 6px 0;
+    }
+    .steady-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .steady-item .tag {
+      font-size: 0.7rem;
+      color: #6a8fa0;
+      text-transform: uppercase;
+    }
+    .steady-item .val {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #c8e0f0;
+    }
+
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 10px 0;
+    }
+    .stat-card {
+      background: #0c131c;
+      border-radius: 8px;
+      padding: 12px 16px;
+      border-left: 4px solid #3a6f9f;
+    }
+    .stat-card .label {
+      font-size: 0.7rem;
+      color: #6a8fa0;
+      text-transform: uppercase;
+    }
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
+    /* ===== LOG PANEL ===== */
+    .log-box {
+      background: #0a1018;
+      border-radius: 6px;
+      padding: 10px 14px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      color: #9ab0c0;
+      border: 1px solid #1a2a36;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-box .log-entry {
+      border-bottom: 1px solid #1a222a;
+      padding: 4px 0;
+    }
+    .log-info { color: #6cf; }
+    .log-success { color: #6fdb6f; }
+    .log-warning { color: #f0c060; }
+    .log-error { color: #e06050; }
+
+    /* ===== SCANNER ===== */
+    .scanner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .scanner-item {
+      background: #0c131c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      border-left: 3px solid #3a6f9f;
+    }
+    .scanner-item .mismatch {
+      color: #e06050;
+      font-weight: bold;
+    }
+
+    /* ===== SYNC BAR ===== */
+    .sync-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin: 6px 0;
+    }
+    .sync-bar input {
+      background: #0a1018;
+      border: 1px solid #2a4050;
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #c8d6e5;
+      font-family: inherit;
+      font-size: 0.9rem;
+      flex: 1 1 200px;
+    }
+    .sync-bar .counter {
+      font-size: 0.9rem;
+      color: #8aacbf;
+    }
+
+    /* ===== TRIGGER AREA ===== */
+    .trigger-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 6px 0;
+    }
+
+    /* ===== ORDER PIPELINE ===== */
+    .order-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+    .order-chip {
+      padding: 6px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: 1px solid #3a5a6a;
+      background: #1a222a;
+      min-width: 80px;
+      text-align: center;
+    }
+    .order-arrow { color: #4a6a7a; font-size: 1.4rem; }
+    #orderOutput {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffd700;
+      min-width: 120px;
+    }
+    .order-debug {
+      background: #0a1018;
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin-top: 10px;
+      font-size: 0.7rem;
+      color: #6a8fa0;
+      border: 1px dashed #2a4050;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 800px) {
+      .flow-grid { grid-template-columns: repeat(3, 1fr); }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .container { padding: 0 10px; }
+      body { padding: 12px; }
+      h1 { font-size: 1.8rem; }
+    }
+    @media (max-width: 500px) {
+      .flow-grid { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🌍 WORLD · HUB · FINAL</h1>
+  <div class="subhead">⚡ INDUSTRIE 6.0 · ZOLL + ORDER‑PIPELINE · REALWORK</div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 1: ZOLL-FLOW (5 Stationen) -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>🔧 ZOLL‑Flow · Innen → Außen</h2>
+    <div class="flow-grid" id="flowGrid">
+      <div class="flow-item"><div class="label">POOL</div><div class="value" id="poolVal">—</div></div>
+      <div class="flow-item"><div class="label">SPRUNG</div><div class="value" id="sprungVal">—</div></div>
+      <div class="flow-item"><div class="label">SURE</div><div class="value" id="sureVal">—</div></div>
+      <div class="flow-item"><div class="label">PIPEBUILD</div><div class="value" id="pipebuildVal">—</div></div>
+      <div class="flow-item"><div class="label">TARGET</div><div class="value" id="targetVal">—</div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 2: STEADY-LINE -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>📈 Steady‑Line · Systemwerte</h2>
+    <div class="steady-row">
+      <div class="steady-item"><span class="tag">Fixpunkt</span><span class="val" id="fixVal">—</span></div>
+      <div class="steady-item"><span class="tag">Orbit‑Modus</span><span class="val" id="orbitVal">—</span></div>
+      <div class="steady-item"><span class="tag">STATE</span><span class="val" id="stateVal">—</span></div>
+      <div class="steady-item"><span class="tag">Zeit</span><span class="val" id="timeVal">—</span></div>
+      <div class="steady-item"><span class="tag">Leader</span><span class="val" id="leaderVal">—</span></div>
+      <div class="steady-item"><span class="tag">ZOLL‑Status</span><span class="val" id="zollStatusVal">—</span></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 3: STATS-GRID -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>📊 Stats‑Grid · 6‑Felder‑Matrix</h2>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="label">POOL</div><div class="value" id="statPool">—</div></div>
+      <div class="stat-card"><div class="label">SPRUNG</div><div class="value" id="statSprung">—</div></div>
+      <div class="stat-card"><div class="label">SURE</div><div class="value" id="statSure">—</div></div>
+      <div class="stat-card"><div class="label">PIPEBUILD</div><div class="value" id="statPipebuild">—</div></div>
+      <div class="stat-card"><div class="label">TARGET</div><div class="value" id="statTarget">—</div></div>
+      <div class="stat-card"><div class="label">ZOLL‑Status</div><div class="value" id="statZollStatus">—</div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 4: LOGS -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>📝 Log‑Panel · ZOLL‑Konsole</h2>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 5: SCANNER -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>🔍 Scanner · Tab‑Erkennung &amp; Rollen</h2>
+    <div class="scanner-grid" id="scannerGrid"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 6: SYNC-BAR -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>🔄 Sync‑Bar · POOK‑Kommunikation</h2>
+    <div class="sync-bar">
+      <input type="text" id="syncInput" placeholder="Nachricht oder 'zoll:clear'" value="zoll:clear">
+      <button class="btn" id="btnSync">⬆ SYNC</button>
+      <span class="counter">Broadcasts: <span id="syncCount">0</span></span>
+      <button class="btn" id="btnResetSync">🔄 Reset</button>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 7: TRIGGER-AREA (Pipeline-Steuerung) -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>⚙️ Trigger‑Area · Pipeline‑Steuerung</h2>
+    <div class="trigger-area">
+      <button class="btn" data-step="P4">P4</button>
+      <button class="btn" data-step="P0">P0</button>
+      <button class="btn" data-step="P1">P1</button>
+      <button class="btn" data-step="P2">P2</button>
+      <button class="btn" data-step="Pe">Pe</button>
+      <button class="btn btn-zoll" id="btnZollStart">⚡ ZOLL starten</button>
+      <button class="btn" id="btnZollStop">⏹ ZOLL stoppen</button>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 8: ORDER-PIPELINE -->
+  <!-- ============================================================ -->
+  <div class="panel" style="border-color: #4a8ab0;">
+    <h2>⭐ ORDER‑PIPELINE · PROCESS × NORM → OUTPUT</h2>
+    <div class="order-row">
+      <div class="order-chip" id="orderProcess">—</div>
+      <span class="order-arrow">×</span>
+      <div class="order-chip" id="orderNorm">—</div>
+      <span class="order-arrow">→</span>
+      <div id="orderOutput">—</div>
+    </div>
+    <div class="order-debug" id="orderDebug">input = —</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PANEL 9: SYSTEM-STATUS -->
+  <!-- ============================================================ -->
+  <div class="panel">
+    <h2>💠 SYSTEM‑STATUS</h2>
+    <p class="desc">Alle Module aktiv – Welt läuft.</p>
+    <button class="btn btn-gold" onclick="alert('✅ Elite‑OK – System stabil')">⚡ Elite‑OK</button>
+    <button class="btn" onclick="location.reload()">🔄 Refresh</button>
+  </div>
+
+</div>
+
+<script>
+  // ================================================================
+  // 1. STATE – mit allen notwendigen Feldern
+  // ================================================================
+  const state = {
+    tabId: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9),
+    isLeader: false,
+    isRunning: false,           // Laufstatus der Pipeline (ersetzt state.running)
+    syncCount: 0,
+    // Dynamische Werte
+    fix: 0,
+    orbitMode: 'IQQ',
+    pool: 0,
+    sprung: 0,
+    sure: 0,
+    pipebuild: 'IDLE',
+    target: null,
+    zollStatus: '⏹ gestoppt',
+    // Scanner
+    tabs: [],
+    mismatch: false,
+    incomplete: false,
+    balanced: false,
+    ready: false,
+    followerExists: false,
+  };
+
+  // ================================================================
+  // 2. DOM-Helfer
+  // ================================================================
+  const $ = (id) => document.getElementById(id);
+
+  // ================================================================
+  // 3. LOG-Funktion
+  // ================================================================
+  function log(msg, type = 'info') {
+    const box = $('logBox');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    const time = new Date().toLocaleTimeString();
+    const iconMap = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '❌' };
+    entry.innerHTML = `<span class="log-${type}">[${time}] ${iconMap[type] || '📌'} ${msg}</span>`;
+    box.appendChild(entry);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ================================================================
+  // 4. GHOST-SIM (nur Leader)
+  // ================================================================
+  function ghostSim() {
+    if (!state.isLeader) return;   // ← Bugfix: nur Leader führt aus
+    const fix = Math.floor(Math.random() * 100);
+    state.fix = fix;
+    const modes = ['IQQ', 'NC', 'OCTA', 'A81'];
+    state.orbitMode = modes[Math.floor(Math.random() * modes.length)];
+    state.pool = Math.round(fix * 0.3 + Math.random() * 10);
+    state.sprung = Math.round(fix * 0.5 + Math.random() * 8);
+    state.sure = Math.round(fix * 0.8 + Math.random() * 5);
+    // PIPEBUILD abhängig von state.isRunning
+    state.pipebuild = state.isRunning ? 'ACTIVE' : 'HOLD';
+    // TARGET
+    state.target = {
+      value: state.sure,
+      sprung: state.sprung,
+      sure: state.sure,
+      pipebuild: state.pipebuild,
+      mode: state.orbitMode,
+      timestamp: Date.now(),
+      zollPassed: state.isRunning && state.isLeader
+    };
+    // ZOLL‑Status
+    state.zollStatus = state.isRunning ? '🏃 läuft' : '⏹ gestoppt';
+    // Scanner-Dummy
+    state.tabs = [
+      { tid: 'tab1', role: 'Leader', fp: 'A1B2', mismatch: false },
+      { tid: 'tab2', role: 'Follower', fp: 'C3D4', mismatch: false },
+    ];
+    // Mismatch zufällig
+    state.mismatch = Math.random() < 0.1;
+    state.incomplete = Math.random() < 0.05;
+    state.balanced = !state.incomplete && !state.mismatch;
+    state.ready = state.isRunning && state.isLeader && state.balanced;
+
+    // In localStorage speichern (für ORDER-PIPELINE)
+    localStorage.setItem('zoll_state', JSON.stringify({
+      running: state.isRunning,
+      isLeader: state.isLeader,
+      followerExists: state.followerExists,
+      mismatch: state.mismatch,
+      incomplete: state.incomplete,
+      balanced: state.balanced,
+      ready: state.ready
+    }));
+
+    updateUI();
+  }
+
+  // ================================================================
+  // 5. LEADER-ELECTION (mit Tie-Break)
+  // ================================================================
+  const LEADER_KEY = 'zoll_leader_timestamp';
+
+  function electLeader() {
+    const now = Date.now();
+    const stored = localStorage.getItem(LEADER_KEY);
+    if (!stored || now < parseInt(stored, 10)) {
+      localStorage.setItem(LEADER_KEY, String(now));
+      state.isLeader = true;
+      state.followerExists = false;
+      log('👑 Ich bin der Leader', 'success');
+    } else {
+      state.isLeader = false;
+      state.followerExists = true;
+      log('👤 Ich bin Follower', 'info');
+    }
+    // Speichere Leader-Status für ORDER-PIPELINE
+    localStorage.setItem('zoll_state', JSON.stringify({
+      running: state.isRunning,
+      isLeader: state.isLeader,
+      followerExists: state.followerExists,
+      mismatch: state.mismatch,
+      incomplete: state.incomplete,
+      balanced: state.balanced,
+      ready: state.ready
+    }));
+    updateUI();
+  }
+
+  // Wiederholte Leader-Wahl (alle 5s)
+  setInterval(electLeader, 5000);
+
+  // ================================================================
+  // 6. PIPEBUILD (korrigiert mit state.isRunning)
+  // ================================================================
+  function pipebuild() {
+    const input = {
+      state: state.isRunning ? "laufend" : "pausiert",   // ← state.isRunning
+      // ... weitere Felder könnten hinzugefügt werden
+    };
+    // Simulierte Verarbeitung
+    const process = state.isRunning ? 'ACTIVE' : 'HOLD';
+    const norm = state.isLeader ? 'RDY' : 'HELP';
+    state.pipebuild = process + '-' + norm;
+    return { PROCESS: process, NORM: norm, OUTPUT: state.pipebuild };
+  }
+
+  // ================================================================
+  // 7. ZOLL-START / STOP
+  // ================================================================
+  function startZoll() {
+    state.isRunning = true;
+    log('🚀 ZOLL gestartet', 'success');
+    // Leader neu wählen, um ggf. Leader zu werden
+    electLeader();
+    // ghostSim läuft im Intervall (s.u.)
+    updateUI();
+  }
+
+  function stopZoll() {
+    state.isRunning = false;
+    log('⏹ ZOLL gestoppt', 'warning');
+    updateUI();
+  }
+
+  // ================================================================
+  // 8. SYNC (mit syncCount Element)
+  // ================================================================
+  function broadcast(msg) {
+    // Simulierter Broadcast
+    log(`📡 Broadcast: ${msg}`, 'info');
+    // In localStorage speichern für andere Tabs
+    localStorage.setItem('zoll_broadcast', JSON.stringify({ msg, from: state.tabId, time: Date.now() }));
+  }
+
+  $('btnSync').addEventListener('click', () => {
+    const msg = $('syncInput').value.trim() || 'zoll:clear';
+    state.syncCount++;
+    const syncEl = $('syncCount');
+    if (syncEl) syncEl.textContent = state.syncCount;
+    broadcast(msg);
+    log(`⬆ SYNC: ${msg}`, 'info');
+  });
+
+  $('btnResetSync').addEventListener('click', () => {
+    state.syncCount = 0;
+    const syncEl = $('syncCount');
+    if (syncEl) syncEl.textContent = '0';
+    log('🔄 Sync-Zähler zurückgesetzt', 'warning');
+  });
+
+  // ================================================================
+  // 9. MANUAL PIPELINE (P4, P0, P1, P2, Pe)
+  // ================================================================
+  document.querySelectorAll('[data-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const step = btn.dataset.step;
+      log(`🛠 Manual Step: ${step}`, 'info');
+      // Simuliere Pipeline-Input/Output
+      const output = `OUTPUT_${step}`;
+      // Optional: Status updaten
+      updateUI();
+    });
+  });
+
+  // ================================================================
+  // 10. UI-UPDATE – alle Panels
+  // ================================================================
+  function updateUI() {
+    // --- Flow ---
+    $('poolVal').textContent = state.pool ?? '—';
+    $('sprungVal').textContent = state.sprung ?? '—';
+    $('sureVal').textContent = state.sure ?? '—';
+    $('pipebuildVal').textContent = state.pipebuild ?? '—';
+    $('targetVal').textContent = state.target ? state.target.value : '—';
+
+    // --- Steady-Line ---
+    $('fixVal').textContent = state.fix ?? '—';
+    $('orbitVal').textContent = state.orbitMode ?? '—';
+    $('stateVal').textContent = state.isRunning ? '🏃 läuft' : '⏹ gestoppt';
+    $('timeVal').textContent = new Date().toLocaleTimeString();
+    $('leaderVal').textContent = state.isLeader ? '👑 Leader' : '👤 Follower';
+    $('zollStatusVal').textContent = state.zollStatus;
+
+    // --- Stats-Grid ---
+    $('statPool').textContent = state.pool ?? '—';
+    $('statSprung').textContent = state.sprung ?? '—';
+    $('statSure').textContent = state.sure ?? '—';
+    $('statPipebuild').textContent = state.pipebuild ?? '—';
+    $('statTarget').textContent = state.target ? state.target.value : '—';
+    $('statZollStatus').textContent = state.zollStatus;
+
+    // --- Scanner ---
+    const scannerGrid = $('scannerGrid');
+    scannerGrid.innerHTML = '';
+    if (state.tabs && state.tabs.length) {
+      state.tabs.forEach(tab => {
+        const div = document.createElement('div');
+        div.className = 'scanner-item';
+        div.innerHTML = `
+          <strong>${tab.tid}</strong> · ${tab.role}
+          <span style="float:right;">FP: ${tab.fp}</span>
+          ${tab.mismatch ? '<span class="mismatch"> ⚠️ MISMATCH</span>' : ''}
+        `;
+        scannerGrid.appendChild(div);
+      });
+    } else {
+      scannerGrid.innerHTML = '<span style="color:#6a8fa0;">Keine Tabs erkannt</span>';
+    }
+
+    // --- ORDER-PIPELINE (wird separat aktualisiert) ---
+    updateOrderPipeline();
+
+    // --- localStorage für ORDER-PIPELINE aktuell halten ---
+    localStorage.setItem('zoll_state', JSON.stringify({
+      running: state.isRunning,
+      isLeader: state.isLeader,
+      followerExists: state.followerExists,
+      mismatch: state.mismatch,
+      incomplete: state.incomplete,
+      balanced: state.balanced,
+      ready: state.ready
+    }));
+  }
+
+  // ================================================================
+  // 11. ORDER-PIPELINE (exakt nach Vorgabe)
+  // ================================================================
+  function ORDER_PIPELINE(input) {
+    // input = { state, leader, follower, mismatch, incomplete, balanced, ready }
+    const PROCESS =
+      input.state === "laufend" && input.leader ? "ACTIVE" :
+      input.state === "laufend" && input.follower ? "SYNC" :
+      input.state === "laufend" ? "WAIT" :
+      input.state === "pausiert" ? "HOLD" :
+      input.mismatch ? "ERROR" :
+      "IDLE";
+
+    const NORM =
+      !input.leader ? "HELP" :
+      input.mismatch ? "ERROR" :
+      input.incomplete ? "MISS" :
+      input.balanced ? "FIT" :
+      input.ready ? "RDY" :
+      "FIX";
+
+    return { PROCESS, NORM, OUTPUT: PROCESS + "-" + NORM };
+  }
+
+  function updateOrderPipeline() {
+    // Lese aktuellen Zustand aus state (oder aus localStorage)
+    const zoll = JSON.parse(localStorage.getItem('zoll_state') || '{}');
+    const input = {
+      state: zoll.running ? "laufend" : "pausiert",
+      leader: !!zoll.isLeader,
+      follower: !!zoll.followerExists,
+      mismatch: !!zoll.mismatch,
+      incomplete: !!zoll.incomplete,
+      balanced: !!zoll.balanced,
+      ready: !!zoll.ready
+    };
+    const order = ORDER_PIPELINE(input);
+
+    $('orderProcess').textContent = order.PROCESS;
+    $('orderNorm').textContent = order.NORM;
+    $('orderOutput').textContent = order.OUTPUT;
+    $('orderDebug').textContent = 'input = ' + JSON.stringify(input, null, 2);
+  }
+
+  // ================================================================
+  // 12. INIT & LEBENSZYKLUS
+  // ================================================================
+  // Initiale Leader-Wahl
+  electLeader();
+
+  // ghostSim läuft alle 4 Sekunden (nur Leader)
+  setInterval(ghostSim, 4000);
+
+  // UI-Update alle 1 Sekunde (zusätzlich)
+  setInterval(updateUI, 1000);
+
+  // Event-Listener für ZOLL Start/Stop
+  $('btnZollStart').addEventListener('click', startZoll);
+  $('btnZollStop').addEventListener('click', stopZoll);
+
+  // Erstes Update
+  updateUI();
+  log('🌍 WORLD-HUB gestartet – ORDER-PIPELINE aktiv', 'success');
+
+  // ================================================================
+  // 13. BROADCAST-CHANNEL (für echte Tab-Kommunikation)
+  // ================================================================
+  if (window.BroadcastChannel) {
+    const bc = new BroadcastChannel('zoll_channel');
+    bc.onmessage = (e) => {
+      log(`📨 BC-Nachricht: ${e.data}`, 'info');
+      // Hier könntest du auf Sync-Nachrichten reagieren
+    };
+    // Sende bei Sync auch über BC
+    const origBroadcast = broadcast;
+    broadcast = function(msg) {
+      origBroadcast(msg);
+      bc.postMessage(msg);
+    };
+  }
+
+  // ================================================================
+  // 14. KEYBOARD-SHORTCUTS (1–5, z, Space)
+  // ================================================================
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '1') { log('⌨️ P4', 'info'); }
+    else if (e.key === '2') { log('⌨️ P0', 'info'); }
+    else if (e.key === '3') { log('⌨️ P1', 'info'); }
+    else if (e.key === '4') { log('⌨️ P2', 'info'); }
+    else if (e.key === '5') { log('⌨️ Pe', 'info'); }
+    else if (e.key === 'z' || e.key === 'Z') { startZoll(); }
+    else if (e.key === ' ') { e.preventDefault(); stopZoll(); }
+  });
+
+  console.log('🌍 WORLD-HUB geladen – alle Systeme bereit');
+</script>
+</body>
+</html>
